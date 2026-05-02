@@ -1,0 +1,79 @@
+import { z } from 'zod';
+
+export const applicantSchema = z.object({
+  firstNameNp: z.string().min(1, 'नेपालीमा पहिलो नाम अनिवार्य छ'),
+  firstNameEn: z.string().min(1, 'First Name is required'),
+  middleNameNp: z.string().optional(),
+  middleNameEn: z.string().optional(),
+  lastNameNp: z.string().min(1, 'नेपालीमा थर अनिवार्य छ'),
+  lastNameEn: z.string().min(1, 'Last Name is required'),
+  dobNp: z.string().optional(),
+  dobEn: z.string().optional(),
+  birthPlace: z.string().optional(),
+  ccType: z.string().optional(),
+  citizenshipNo: z.string().optional(),
+  district: z.string().optional(),
+  issuedDate: z.string().optional(),
+  gender: z.string().optional(),
+  maritalStatus: z.string().optional(),
+  fatherStatus: z.string().optional(),
+  education: z.string().optional(),
+  profession: z.string().optional(),
+  business: z.string().optional(),
+  caste: z.string().optional(),
+  religion: z.string().optional(),
+  nidNo: z.string().optional(),
+});
+
+export const contactSchema = z.object({
+  permPhone: z.string().optional(),
+  permMobile: z.string().optional(),
+  permState: z.string().optional(),
+  permDistrict: z.string().optional(),
+  permLocalLevel: z.string().optional(),
+  permWard: z.string().optional(),
+  permVillage: z.string().optional(),
+  copyToTemp: z.boolean().optional(),
+  tempPhone: z.string().optional(),
+  tempMobile: z.string().optional(),
+  tempState: z.string().optional(),
+  tempDistrict: z.string().optional(),
+  tempLocalLevel: z.string().optional(),
+  tempWard: z.string().optional(),
+  tempVillage: z.string().optional(),
+});
+
+export const familySchema = z.object({
+  fatherFirstNameNp: z.string().optional(),
+  fatherFirstNameEn: z.string().optional(),
+  fatherLastNameNp: z.string().optional(),
+  fatherLastNameEn: z.string().optional(),
+  fatherCitizenshipNo: z.string().optional(),
+  fatherNidNo: z.string().optional(),
+  fatherNationality: z.string().optional(),
+  fatherPermState: z.string().optional(),
+  fatherPermDistrict: z.string().optional(),
+  fatherPermLocalLevel: z.string().optional(),
+  fatherPermWard: z.string().optional(),
+  fatherMirrorAddress: z.boolean().optional(),
+  fatherTempState: z.string().optional(),
+  fatherTempDistrict: z.string().optional(),
+  fatherTempLocalLevel: z.string().optional(),
+  fatherTempWard: z.string().optional(),
+  
+  motherFirstNameNp: z.string().optional(),
+  motherFirstNameEn: z.string().optional(),
+  motherLastNameNp: z.string().optional(),
+  motherLastNameEn: z.string().optional(),
+  
+  grandFatherFirstNameNp: z.string().optional(),
+  grandFatherFirstNameEn: z.string().optional(),
+  grandFatherLastNameNp: z.string().optional(),
+  grandFatherLastNameEn: z.string().optional(),
+});
+
+export type ApplicantData = z.infer<typeof applicantSchema>;
+export type ContactData = z.infer<typeof contactSchema>;
+export type FamilyData = z.infer<typeof familySchema>;
+
+export type FormData = ApplicantData & ContactData & FamilyData;
