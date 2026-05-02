@@ -134,7 +134,7 @@ export const Step0Applicant: React.FC = () => {
             ))}
           </InputField>
  
-          <InputField labelNp="जारी मिति" labelEn="Issued Date" name="issuedDate" register={register} error={errors.issuedDate} placeholder="YYYY-MM-DD" />
+          <InputField labelNp="जारी मिति" labelEn="Issued Date" name="issuedDate" register={register} error={errors.issuedDate} type="date" />
           <InputField labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="National ID Number" name="nidNo" register={register} error={errors.nidNo} placeholder="NID Number" />
         </div>
       </Section>

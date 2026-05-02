@@ -114,28 +114,34 @@ export const Step1Contact: React.FC = () => {
 
   // Options memoization for Temporary Address
   const tempDistrictOptions = useMemo(() => {
-    if (!tempState || !locations[tempState]) return [{ val: '', label: 'SELECT DISTRICT' }];
+    const state = copyToTemp ? permState : tempState;
+    if (!state || !locations[state]) return [{ val: '', label: 'SELECT DISTRICT' }];
     return [
       { val: '', label: 'SELECT DISTRICT' },
-      ...Object.keys(locations[tempState]).map(d => ({ val: d, label: d }))
+      ...Object.keys(locations[state]).map(d => ({ val: d, label: d }))
     ];
-  }, [tempState]);
+  }, [tempState, permState, copyToTemp]);
 
   const tempLocalLevelOptions = useMemo(() => {
-    if (!tempState || !tempDistrict || !locations[tempState]?.[tempDistrict]) return [{ val: '', label: 'SELECT LOCAL LEVEL' }];
+    const state = copyToTemp ? permState : tempState;
+    const district = copyToTemp ? permDistrict : tempDistrict;
+    if (!state || !district || !locations[state]?.[district]) return [{ val: '', label: 'SELECT LOCAL LEVEL' }];
     return [
       { val: '', label: 'SELECT LOCAL LEVEL' },
-      ...Object.keys(locations[tempState][tempDistrict]).map(l => ({ val: l, label: l }))
+      ...Object.keys(locations[state][district]).map(l => ({ val: l, label: l }))
     ];
-  }, [tempState, tempDistrict]);
+  }, [tempState, tempDistrict, permState, permDistrict, copyToTemp]);
 
   const tempWardOptions = useMemo(() => {
-    if (!tempState || !tempDistrict || !tempLocalLevel || !locations[tempState]?.[tempDistrict]?.[tempLocalLevel]) return [{ val: '', label: 'SELECT WARD' }];
+    const state = copyToTemp ? permState : tempState;
+    const district = copyToTemp ? permDistrict : tempDistrict;
+    const localLevel = copyToTemp ? permLocalLevel : tempLocalLevel;
+    if (!state || !district || !localLevel || !locations[state]?.[district]?.[localLevel]) return [{ val: '', label: 'SELECT WARD' }];
     return [
       { val: '', label: 'SELECT WARD' },
-      ...locations[tempState][tempDistrict][tempLocalLevel].map(w => ({ val: w, label: w }))
+      ...locations[state][district][localLevel].map(w => ({ val: w, label: w }))
     ];
-  }, [tempState, tempDistrict, tempLocalLevel]);
+  }, [tempState, tempDistrict, tempLocalLevel, permState, permDistrict, permLocalLevel, copyToTemp]);
 
   // Sync Logic (Targeted dependencies instead of watchAllFields)
   const fieldsToSync = [

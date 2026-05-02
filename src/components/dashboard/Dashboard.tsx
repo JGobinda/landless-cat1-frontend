@@ -60,6 +60,29 @@ const ApplicationModal = ({ app, onClose, startEditing }: { app: any, onClose: (
              </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 bg-white/5 p-6 rounded-3xl border border-white/5">
+             <div className="space-y-1">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Marital Status</p>
+                <p className="text-xs font-bold text-white uppercase">{app.maritalStatus || 'N/A'}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Education</p>
+                <p className="text-xs font-bold text-white uppercase">{app.education || 'N/A'}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Business</p>
+                <p className="text-xs font-bold text-white uppercase">{app.business || 'N/A'}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Caste</p>
+                <p className="text-xs font-bold text-white uppercase">{app.caste || 'N/A'}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Religion</p>
+                <p className="text-xs font-bold text-white uppercase">{app.religion || 'N/A'}</p>
+             </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
              {/* Left Column: Contact & Birth */}
              <div className="space-y-8">
@@ -75,9 +98,19 @@ const ApplicationModal = ({ app, onClose, startEditing }: { app: any, onClose: (
                           <p className="text-xs text-white uppercase font-bold">{app.birthPlace || 'N/A'}</p>
                        </div>
                        <div>
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">District</p>
-                          <p className="text-xs text-white uppercase font-bold">{app.pDistCode || 'N/A'}</p>
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Issued District</p>
+                          <p className="text-xs text-white uppercase font-bold">{app.district || 'N/A'}</p>
                        </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Issued Date</p>
+                           <p className="text-xs text-white uppercase font-bold">{app.issuedDate || 'N/A'}</p>
+                        </div>
+                        <div>
+                           <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">CC Type</p>
+                           <p className="text-xs text-white uppercase font-bold">{app.ccType || 'N/A'}</p>
+                        </div>
                      </div>
                      <div className="pt-4 border-t border-white/5">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Mobile Number</p>

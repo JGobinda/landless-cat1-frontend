@@ -115,9 +115,9 @@ export const Step2Family: React.FC = () => {
     const permLocalLevelOptions = useMemo(() => getLocalLevelOptions(permState, permDistrict), [permState, permDistrict]);
     const permWardOptions = useMemo(() => getWardOptions(permState, permDistrict, permLocalLevel), [permState, permDistrict, permLocalLevel]);
 
-    const tempDistrictOptions = useMemo(() => getDistrictOptions(tempState), [tempState]);
-    const tempLocalLevelOptions = useMemo(() => getLocalLevelOptions(tempState, tempDistrict), [tempState, tempDistrict]);
-    const tempWardOptions = useMemo(() => getWardOptions(tempState, tempDistrict, tempLocalLevel), [tempState, tempDistrict, tempLocalLevel]);
+    const tempDistrictOptions = useMemo(() => getDistrictOptions(mirrorAddress ? permState : tempState), [tempState, permState, mirrorAddress]);
+    const tempLocalLevelOptions = useMemo(() => getLocalLevelOptions(mirrorAddress ? permState : tempState, mirrorAddress ? permDistrict : tempDistrict), [tempState, tempDistrict, permState, permDistrict, mirrorAddress]);
+    const tempWardOptions = useMemo(() => getWardOptions(mirrorAddress ? permState : tempState, mirrorAddress ? permDistrict : tempDistrict, mirrorAddress ? permLocalLevel : tempLocalLevel), [tempState, tempDistrict, tempLocalLevel, permState, permDistrict, permLocalLevel, mirrorAddress]);
 
     React.useEffect(() => {
       if (mirrorAddress) {

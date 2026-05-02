@@ -72,14 +72,16 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData((prev) => {
-      const newData = { ...prev, ...data };
+      const { id: _, ...rest } = prev;
+      const newData = { ...rest, ...data };
       const targetUid = editingUid || user?.uid;
       
       // Async save to firestore if user exists
       if (user && targetUid) {
         const docRef = doc(db, 'applications', targetUid);
+        const { id: __, ...saveData } = newData;
         setDoc(docRef, {
-          ...newData,
+          ...saveData,
           userId: targetUid,
           currentStep: step,
           updatedAt: serverTimestamp()
@@ -110,9 +112,10 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user || !targetUid) return;
     
     const docRef = doc(db, 'applications', targetUid);
+    const { id: _, ...rest } = formData;
     try {
       await setDoc(docRef, {
-        ...formData,
+        ...rest,
         userId: targetUid,
         currentStep: step,
         updatedAt: serverTimestamp()

@@ -32,24 +32,21 @@ export const Step4Review: React.FC = () => {
          </motion.div>
          <h2 className="text-4xl font-light text-white mb-6 tracking-tight leading-tight">Registry Synchronized</h2>
          <p className="text-lg text-slate-400 font-medium mb-12 leading-relaxed">
-            Identity credentials have successfully been verified. 
-            Download your encrypted enrollment certificate and present it during 
-            biometric acquisition.
+            Identity credentials have successfully been verified and synchronized with the national registry. 
+            The applicant record is now active in the system.
          </p>
          
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <button className="bg-indigo-600 text-white p-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex flex-col items-center gap-4 hover:bg-indigo-500 transition-all group shadow-xl shadow-indigo-600/20">
-               <Download className="group-hover:translate-y-1 transition-transform" />
-               Download Certificate
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-white/5 backdrop-blur-3xl text-white border border-white/10 p-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex flex-col items-center gap-4 hover:bg-white/10 transition-all shadow-2xl"
-            >
-               <FileCheck />
-               Create New Registry
-            </button>
-         </div>
+         <div className="flex justify-center">
+             <button 
+               onClick={() => window.location.reload()}
+               className="bg-indigo-600 text-white px-12 py-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-6 hover:bg-indigo-500 transition-all shadow-2xl shadow-indigo-600/30 group"
+             >
+                <div className="bg-white/10 p-2 rounded-lg">
+                  <FileCheck size={20} />
+                </div>
+                <span>Start New Registry</span>
+             </button>
+          </div>
       </div>
     );
   }
