@@ -19,10 +19,10 @@ const locations = locationsData as Locations;
 
 // Helper component for this step
 const FormField = ({ labelNp, labelEn, name, register, error, required, type = 'text', as = 'input', options = [], disabled, onChange }: any) => (
-  <div className="grid grid-cols-[1fr_2fr] items-center gap-6 py-4 border-b border-white/5 last:border-0 group">
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter group-hover:text-indigo-400 transition-colors">{labelNp}{required && <span className="text-red-400">*</span>}</span>
-      <span className="text-xs font-semibold text-white/50 group-hover:text-white transition-colors">{labelEn}{required && <span className="text-red-400">*</span>}</span>
+  <div className="flex flex-col sm:grid sm:grid-cols-[1fr_2fr] sm:items-center gap-2 sm:gap-6 py-4 border-b border-slate-100 last:border-0 group">
+    <div className="flex flex-col gap-0.5 sm:mb-0 mb-1">
+      <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#1a4a8c] transition-colors">{labelNp}{required && <span className="text-[#dc2626]">*</span>}</span>
+      <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}{required && <span className="text-[#dc2626]">*</span>}</span>
     </div>
     <div>
       {as === 'select' ? (
@@ -31,11 +31,11 @@ const FormField = ({ labelNp, labelEn, name, register, error, required, type = '
           disabled={disabled}
           onChange={onChange}
           className={cn(
-            "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all uppercase [color-scheme:dark] disabled:opacity-30", 
+            "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none uppercase transition-all disabled:opacity-30", 
             error && "border-red-500/50"
           )}
         >
-          {options.map((opt: any) => <option key={opt.val} value={opt.val} className="bg-[#0f172a]">{opt.label}</option>)}
+          {options.map((opt: any) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
         </select>
       ) : (
         <input 
@@ -43,12 +43,12 @@ const FormField = ({ labelNp, labelEn, name, register, error, required, type = '
           {...register(name)} 
           disabled={disabled}
           className={cn(
-            "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all uppercase placeholder:text-slate-600 disabled:opacity-30", 
+            "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none uppercase transition-all placeholder:text-slate-400 disabled:opacity-30", 
             error && "border-red-500/50"
           )} 
         />
       )}
-      {error && <span className="text-[10px] text-red-400 font-medium mt-1 block">{error.message}</span>}
+      {error && <span className="text-[10px] text-[#dc2626] font-bold mt-1 block">{error.message}</span>}
     </div>
   </div>
 );
@@ -173,13 +173,13 @@ export const Step1Contact: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in slide-in-from-right-8 duration-700 px-4">
-       <div className="relative flex items-center gap-4 my-10">
-        <div className="flex-1 h-px bg-indigo-500/20" />
-        <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.25em] px-8">Section: Permanent Geolocation</span>
-        <div className="flex-1 h-px bg-indigo-500/20" />
+       <div className="relative flex items-center gap-4 my-12">
+        <div className="flex-1 h-px bg-slate-200" />
+        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Section: Permanent Geolocation</span>
+        <div className="flex-1 h-px bg-slate-200" />
       </div>
 
-      <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 mb-10 shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 mb-10 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-1">
            <FormField labelNp="फोन नं." labelEn="Phone" name="permPhone" register={register} error={errors.permPhone} />
            <FormField labelNp="मोबाईल नं." labelEn="Mobile" name="permMobile" register={register} error={errors.permMobile} />
@@ -233,24 +233,24 @@ export const Step1Contact: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-8 bg-indigo-500/5 p-6 rounded-2xl border border-indigo-500/20 group transition-all hover:bg-indigo-500/10 cursor-pointer" onClick={() => setValue('copyToTemp', !copyToTemp)}>
+      <div className="flex items-center gap-4 mb-8 bg-[#1a4a8c]/5 p-6 rounded-2xl border border-[#1a4a8c]/10 group transition-all hover:bg-[#1a4a8c]/10 cursor-pointer" onClick={() => setValue('copyToTemp', !copyToTemp)}>
         <div className={cn(
           "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-          copyToTemp ? "bg-indigo-600 border-indigo-600" : "bg-white/5 border-white/10"
+          copyToTemp ? "bg-[#1a4a8c] border-[#1a4a8c]" : "bg-white border-slate-200"
         )}>
           {copyToTemp && <div className="w-2 h-2 bg-white rounded-sm" />}
         </div>
-        <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
+        <span className="text-xs font-black text-[#1a4a8c] uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
         <input type="hidden" {...register('copyToTemp')} />
       </div>
 
-      <div className="relative flex items-center gap-4 my-10">
-        <div className="flex-1 h-px bg-indigo-500/20" />
-        <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.25em] px-8">Section: Temporary Residency</span>
-        <div className="flex-1 h-px bg-indigo-500/20" />
+      <div className="relative flex items-center gap-4 my-12">
+        <div className="flex-1 h-px bg-slate-200" />
+        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Section: Temporary Residency</span>
+        <div className="flex-1 h-px bg-slate-200" />
       </div>
 
-      <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 mb-10 shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 mb-10 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-1">
            <FormField 
              labelNp="प्रदेश" 
@@ -303,13 +303,13 @@ export const Step1Contact: React.FC = () => {
         <button 
           type="button"
           onClick={() => setStep(0)}
-          className="px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 border border-white/10 hover:text-white hover:bg-white/5 transition-all"
+          className="px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 border border-slate-200 bg-white hover:text-slate-600 transition-all font-sans"
         >
           Return to Identity
         </button>
         <button 
           type="submit"
-          className="px-16 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-500 shadow-xl shadow-indigo-600/20 transition-all active:scale-95"
+          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-[#1a4a8c]/20 transition-all active:scale-95"
         >
           Confirm Registry
         </button>

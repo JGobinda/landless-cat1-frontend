@@ -17,10 +17,10 @@ type Locations = {
 const locations = locationsData as Locations;
 
 const Row = ({ labelNp, labelEn, name, register, error, required, as = 'input', options = [], disabled, onChange }: any) => (
-  <div className="grid grid-cols-[1fr_1fr] items-center gap-8 py-3 border-b border-white/5 last:border-0 group transition-all px-4">
+  <div className="flex flex-col sm:grid sm:grid-cols-[1fr_1fr] sm:items-center gap-2 sm:gap-8 py-3 border-b border-slate-100 last:border-0 group transition-all px-4">
      <div className="flex flex-col">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter group-hover:text-indigo-400 transition-colors">{labelNp}{required && <span className="text-red-400 ml-1">*</span>}</span>
-        <span className="text-xs font-semibold text-white/50 group-hover:text-white transition-colors">{labelEn}</span>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#1a4a8c] transition-colors">{labelNp}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
+        <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}</span>
      </div>
      <div className="flex flex-col">
         {as === 'select' ? (
@@ -29,31 +29,31 @@ const Row = ({ labelNp, labelEn, name, register, error, required, as = 'input', 
             disabled={disabled}
             onChange={onChange}
             className={cn(
-              "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all uppercase [color-scheme:dark] disabled:opacity-30",
+              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase disabled:opacity-30",
               error && "border-red-400/50 bg-red-400/5"
             )}
           >
-            {options.map((opt: any) => <option key={opt.val} value={opt.val} className="bg-[#0f172a]">{opt.label}</option>)}
+            {options.map((opt: any) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
           </select>
         ) : (
           <input 
             {...register(name)} 
             disabled={disabled}
             className={cn(
-              "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all uppercase placeholder:text-slate-600 disabled:opacity-30",
+              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase placeholder:text-slate-400 disabled:opacity-30",
               error && "border-red-400/50 bg-red-400/5"
             )}
           />
         )}
-        {error && <p className="text-[10px] text-red-400 font-medium mt-1 ml-1">{error.message}</p>}
+        {error && <p className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1">{error.message}</p>}
      </div>
   </div>
 );
 
 const GroupHeader = ({ title }: { title: string }) => (
   <div className="flex items-center gap-4 mb-6 mt-12 first:mt-0">
-    <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em] whitespace-nowrap">{title}</h3>
-    <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/20 to-transparent" />
+    <h3 className="text-xs font-black text-[#1a4a8c] uppercase tracking-[0.3em] whitespace-nowrap">{title}</h3>
+    <div className="h-px flex-1 bg-slate-200" />
   </div>
 );
 
@@ -130,7 +130,7 @@ export const Step2Family: React.FC = () => {
 
     return (
       <div className="px-10 pb-6">
-        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Permanent Address</div>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Permanent Address</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
           <Row 
             labelNp="प्रदेश" labelEn="State" 
@@ -151,20 +151,20 @@ export const Step2Family: React.FC = () => {
         </div>
 
         <div 
-          className="flex items-center gap-4 my-8 bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/20 cursor-pointer hover:bg-indigo-500/10 transition-all"
+          className="flex items-center gap-4 my-8 bg-[#1a4a8c]/5 p-4 rounded-xl border border-[#1a4a8c]/10 cursor-pointer hover:bg-[#1a4a8c]/10 transition-all font-sans"
           onClick={() => setValue(`${prefix}MirrorAddress` as any, !mirrorAddress)}
         >
           <div className={cn(
             "w-5 h-5 rounded border flex items-center justify-center transition-all",
-            mirrorAddress ? "bg-indigo-600 border-indigo-600" : "bg-white/5 border-white/10"
+            mirrorAddress ? "bg-[#1a4a8c] border-[#1a4a8c]" : "bg-white border-slate-300"
           )}>
             {mirrorAddress && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
           </div>
-          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
+          <span className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
           <input type="hidden" {...register(`${prefix}MirrorAddress` as any)} />
         </div>
 
-        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Temporary Address</div>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Temporary Address</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
           <Row 
             labelNp="प्रदेश" labelEn="State" 
@@ -232,13 +232,13 @@ export const Step2Family: React.FC = () => {
         <button 
           type="button"
           onClick={() => setStep(1)}
-          className="px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 border border-white/10 hover:text-white hover:bg-white/5 transition-all"
+          className="px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 border border-slate-200 bg-white shadow-sm hover:text-slate-600 transition-all font-sans"
         >
           Return to Contact
         </button>
         <button 
           type="submit"
-          className="px-16 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-500 shadow-xl shadow-indigo-600/20 transition-all hover:scale-105 active:scale-95"
+          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95"
         >
           Proceed to Preview
         </button>
@@ -250,7 +250,7 @@ export const Step2Family: React.FC = () => {
 const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="mb-10">
      <GroupHeader title={title} />
-     <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden">
+     <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
         {children}
      </div>
   </div>
