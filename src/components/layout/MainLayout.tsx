@@ -62,9 +62,6 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                    <LogOut size={16} />
                 </button>
              </div>
-             <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Nepal.svg" alt="Nepal Flag" className="h-4" />
-             </div>
           </div>
         </div>
       </div>
