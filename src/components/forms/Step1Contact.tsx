@@ -137,7 +137,17 @@ export const Step1Contact: React.FC = () => {
     ];
   }, [tempState, tempDistrict, tempLocalLevel]);
 
-  // Sync Logic
+  // Sync Logic (Targeted dependencies instead of watchAllFields)
+  const fieldsToSync = [
+    watchAllFields.permPhone,
+    watchAllFields.permMobile,
+    watchAllFields.permState,
+    watchAllFields.permDistrict,
+    watchAllFields.permLocalLevel,
+    watchAllFields.permWard,
+    watchAllFields.permVillage
+  ];
+
   React.useEffect(() => {
     if (copyToTemp) {
       setValue('tempPhone', watchAllFields.permPhone);
@@ -148,7 +158,7 @@ export const Step1Contact: React.FC = () => {
       setValue('tempWard', watchAllFields.permWard);
       setValue('tempVillage', watchAllFields.permVillage);
     }
-  }, [copyToTemp, setValue, watchAllFields]);
+  }, [copyToTemp, setValue, ...fieldsToSync]);
 
   const onSubmit = (data: ContactData) => {
     updateFormData(data);

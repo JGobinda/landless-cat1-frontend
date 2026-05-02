@@ -1,99 +1,99 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { User, LogIn, Lock, Info } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { loginWithEmail } from '../../lib/firebase';
+import { LogIn, UserCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 
-export const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
-  const [isLoading, setIsLoading] = React.useState(false);
+export const Login: React.FC = () => {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate auth
-    setTimeout(() => {
-      onLogin();
-    }, 1200);
+    setIsLoggingIn(true);
+    setError('');
+    try {
+      await loginWithEmail(email, password);
+    } catch (err: any) {
+      setError('Invalid credentials. Please ensure test@gmail.com / test@123 is enabled in Firebase Console.');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0f172a] flex items-center justify-center p-4 overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px]" />
-
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] p-6">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[420px] relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden"
       >
-        <div className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden p-10">
-          {/* Header */}
-          <div className="text-center mb-10">
-             <motion.div 
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-400/20 mb-8 shadow-inner shadow-indigo-500/50"
-             >
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Emblem_of_Nepal.svg" alt="Nepal Logo" className="h-12" />
-             </motion.div>
-             <h1 className="text-3xl font-light text-white tracking-tight leading-tight">Secure Portal Access</h1>
-             <p className="text-slate-400 text-sm mt-3 font-medium uppercase tracking-widest text-[10px]">National Identity System</p>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/20 blur-3xl -mr-16 -mt-16" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-600/20 blur-3xl -ml-16 -mb-16" />
+
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-8 border border-indigo-600/30">
+            <LogIn className="w-8 h-8 text-indigo-400" />
           </div>
+          
+          <h1 className="text-2xl font-black text-white mb-2 tracking-tighter uppercase">Personnel Login</h1>
+          <p className="text-slate-500 text-xs mb-10 font-medium tracking-tight">Authentication required for data entry portal</p>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-5">
-               <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Request Identification</label>
-                  <div className="relative group">
-                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                    <input 
-                      type="text" 
-                      placeholder="ENTER APPLICATION NO."
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white/10 transition-all uppercase placeholder:text-slate-600 text-sm"
-                    />
-                  </div>
-               </div>
+          <form onSubmit={handleLogin} className="w-full space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                <div className="relative">
+                  <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input 
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E.g. test@gmail.com"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                    required
+                  />
+                </div>
+              </div>
 
-               <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Access Key (DOB)</label>
-                  <div className="relative group">
-                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                    <input 
-                      type="date" 
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white/10 transition-all text-sm [color-scheme:dark]"
-                    />
-                  </div>
-               </div>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Secure Password</label>
+                <input 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                  required
+                />
+              </div>
             </div>
 
-            <button 
-              disabled={isLoading}
-              type="submit"
-              className={cn(
-                "w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl py-5 font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50",
-                isLoading && "cursor-wait"
-              )}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }} 
+                animate={{ opacity: 1, x: 0 }}
+                className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
+              >
+                <p className="text-[10px] text-red-400 font-bold tracking-tight uppercase leading-relaxed text-center">{error}</p>
+              </motion.div>
+            )}
+
+            <button
+              disabled={isLoggingIn}
+              className="w-full group flex items-center justify-center gap-4 px-6 py-5 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-500 transition-all active:scale-95 shadow-2xl shadow-indigo-600/20 disabled:opacity-50"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <LogIn size={16} />
-                  Authenticate
-                </>
-              )}
+              {isLoggingIn ? 'Verifying...' : 'Access Portal'}
+              {!isLoggingIn && <LogIn className="w-4 h-4" />}
             </button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-white/5 text-center">
-             <p className="text-slate-500 text-xs font-medium">Technical support? <span className="text-indigo-400 cursor-pointer hover:underline">Contact Center</span></p>
-          </div>
+          <p className="mt-10 text-[9px] text-slate-600 uppercase tracking-widest font-black">
+            Classified Environment — Do not share credentials
+          </p>
         </div>
       </motion.div>
-      <div className="absolute bottom-8 text-white/10 text-[10px] font-mono tracking-widest uppercase">
-        Protected by Government Cryptography v4.2
-      </div>
     </div>
   );
 };

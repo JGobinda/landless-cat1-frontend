@@ -4,11 +4,20 @@ import { FileCheck, Download, CheckCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Step4Review: React.FC = () => {
-  const { formData, setStep } = useFormContext();
+  const { formData, setStep, saveData } = useFormContext();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleSubmit = () => {
-    setIsSubmitted(true);
+  const handleSubmit = async () => {
+    setIsSaving(true);
+    try {
+      await saveData();
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isSubmitted) {
@@ -94,17 +103,29 @@ export const Step4Review: React.FC = () => {
                 <div className="mt-4 pt-4 border-t border-white/5">
                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Permanent Address</p>
                    <p className="text-[10px] text-white/70 uppercase">
-                     {formData.fatherPermDistrict}, {formData.fatherPermState}
+                     {formData.fatherPermLocalLevel}-{formData.fatherPermWard}, {formData.fatherPermDistrict}, {formData.fatherPermState}
                    </p>
                 </div>
              </div>
              <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
                 <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Mother</h4>
                 <p className="text-sm font-bold text-white uppercase tracking-tight">{formData.motherFirstNameEn} {formData.motherLastNameEn}</p>
+                <div className="mt-4 pt-4 border-t border-white/5">
+                   <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Permanent Address</p>
+                   <p className="text-[10px] text-white/70 uppercase">
+                     {formData.motherPermLocalLevel}-{formData.motherPermWard}, {formData.motherPermDistrict}, {formData.motherPermState}
+                   </p>
+                </div>
              </div>
              <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
                 <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Grandfather</h4>
                 <p className="text-sm font-bold text-white uppercase tracking-tight">{formData.grandFatherFirstNameEn} {formData.grandFatherLastNameEn}</p>
+                <div className="mt-4 pt-4 border-t border-white/5">
+                   <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Permanent Address</p>
+                   <p className="text-[10px] text-white/70 uppercase">
+                     {formData.grandFatherPermLocalLevel}-{formData.grandFatherPermWard}, {formData.grandFatherPermDistrict}, {formData.grandFatherPermState}
+                   </p>
+                </div>
              </div>
           </div>
        </div>
@@ -118,10 +139,12 @@ export const Step4Review: React.FC = () => {
           </button>
           <button 
              onClick={handleSubmit}
-             className="w-full sm:w-auto px-20 py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center gap-6"
+             disabled={isSaving}
+             className="w-full sm:w-auto px-20 py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-             Finalize Submission
-             <ArrowRight size={18} />
+             {isSaving ? 'Synchronizing...' : 'Finalize Submission'}
+             {!isSaving && <ArrowRight size={18} />}
+             {isSaving && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
           </button>
        </div>
     </div>

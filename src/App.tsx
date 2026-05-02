@@ -2,35 +2,56 @@ import React from 'react';
 import { FormProvider, useFormContext } from './context/FormContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './components/auth/Login';
+import { Dashboard } from './components/dashboard/Dashboard';
 import { Step0Applicant } from './components/forms/Step0Applicant';
 import { Step1Contact } from './components/forms/Step1Contact';
 import { Step2Family } from './components/forms/Step2Family';
 import { Step4Review } from './components/forms/Step4Review';
 
 const FormStepper = () => {
-  const { step } = useFormContext();
+  const { step, user, loading, view } = useFormContext();
 
-  switch (step) {
-    case 0: return <Step0Applicant />;
-    case 1: return <Step1Contact />;
-    case 2: return <Step2Family />;
-    case 3: return <Step4Review />;
-    default: return <Step0Applicant />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
+      </div>
+    );
   }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  if (view === 'dashboard') {
+    return (
+      <MainLayout>
+        <Dashboard />
+      </MainLayout>
+    );
+  }
+
+  const renderStep = () => {
+    switch (step) {
+      case 0: return <Step0Applicant />;
+      case 1: return <Step1Contact />;
+      case 2: return <Step2Family />;
+      case 3: return <Step4Review />;
+      default: return <Step0Applicant />;
+    }
+  };
+
+  return (
+    <MainLayout>
+      {renderStep()}
+    </MainLayout>
+  );
 };
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-
-  if (!isAuthenticated) {
-    return <Login onLogin={() => setIsAuthenticated(true)} />;
-  }
-
   return (
     <FormProvider>
-      <MainLayout>
-        <FormStepper />
-      </MainLayout>
+      <FormStepper />
     </FormProvider>
   );
 }

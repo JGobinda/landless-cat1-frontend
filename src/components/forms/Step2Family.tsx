@@ -63,19 +63,13 @@ export const Step2Family: React.FC = () => {
     resolver: zodResolver(familySchema),
     defaultValues: {
       ...formData as FamilyData,
-      fatherMirrorAddress: formData.fatherMirrorAddress || false
+      fatherMirrorAddress: formData.fatherMirrorAddress || false,
+      motherMirrorAddress: formData.motherMirrorAddress || false,
+      grandFatherMirrorAddress: formData.grandFatherMirrorAddress || false,
     }
   });
 
   const watchAll = watch();
-  const fatherPermState = watchAll.fatherPermState;
-  const fatherPermDistrict = watchAll.fatherPermDistrict;
-  const fatherPermLocalLevel = watchAll.fatherPermLocalLevel;
-  const fatherMirrorAddress = watchAll.fatherMirrorAddress;
-  
-  const fatherTempState = watchAll.fatherTempState;
-  const fatherTempDistrict = watchAll.fatherTempDistrict;
-  const fatherTempLocalLevel = watchAll.fatherTempLocalLevel;
 
   const stateOptions = useMemo(() => [
     { val: '', label: 'SELECT STATE' },
@@ -106,23 +100,92 @@ export const Step2Family: React.FC = () => {
     ];
   };
 
-  const fatherPermDistrictOptions = useMemo(() => getDistrictOptions(fatherPermState), [fatherPermState]);
-  const fatherPermLocalLevelOptions = useMemo(() => getLocalLevelOptions(fatherPermState, fatherPermDistrict), [fatherPermState, fatherPermDistrict]);
-  const fatherPermWardOptions = useMemo(() => getWardOptions(fatherPermState, fatherPermDistrict, fatherPermLocalLevel), [fatherPermState, fatherPermDistrict, fatherPermLocalLevel]);
+  const RelativeAddressGroup = ({ prefix, label }: { prefix: 'father' | 'mother' | 'grandFather', label: string }) => {
+    const permState = watchAll[`${prefix}PermState` as keyof FamilyData] as string;
+    const permDistrict = watchAll[`${prefix}PermDistrict` as keyof FamilyData] as string;
+    const permLocalLevel = watchAll[`${prefix}PermLocalLevel` as keyof FamilyData] as string;
+    const permWard = watchAll[`${prefix}PermWard` as keyof FamilyData] as string;
+    const mirrorAddress = watchAll[`${prefix}MirrorAddress` as keyof FamilyData] as boolean;
 
-  const fatherTempDistrictOptions = useMemo(() => getDistrictOptions(fatherTempState), [fatherTempState]);
-  const fatherTempLocalLevelOptions = useMemo(() => getLocalLevelOptions(fatherTempState, fatherTempDistrict), [fatherTempState, fatherTempDistrict]);
-  const fatherTempWardOptions = useMemo(() => getWardOptions(fatherTempState, fatherTempDistrict, fatherTempLocalLevel), [fatherTempState, fatherTempDistrict, fatherTempLocalLevel]);
+    const tempState = watchAll[`${prefix}TempState` as keyof FamilyData] as string;
+    const tempDistrict = watchAll[`${prefix}TempDistrict` as keyof FamilyData] as string;
+    const tempLocalLevel = watchAll[`${prefix}TempLocalLevel` as keyof FamilyData] as string;
 
-  // Sync Logic for Father
-  React.useEffect(() => {
-    if (fatherMirrorAddress) {
-      setValue('fatherTempState', fatherPermState);
-      setValue('fatherTempDistrict', fatherPermDistrict);
-      setValue('fatherTempLocalLevel', fatherPermLocalLevel);
-      setValue('fatherTempWard', watchAll.fatherPermWard);
-    }
-  }, [fatherMirrorAddress, fatherPermState, fatherPermDistrict, fatherPermLocalLevel, watchAll.fatherPermWard, setValue]);
+    const permDistrictOptions = useMemo(() => getDistrictOptions(permState), [permState]);
+    const permLocalLevelOptions = useMemo(() => getLocalLevelOptions(permState, permDistrict), [permState, permDistrict]);
+    const permWardOptions = useMemo(() => getWardOptions(permState, permDistrict, permLocalLevel), [permState, permDistrict, permLocalLevel]);
+
+    const tempDistrictOptions = useMemo(() => getDistrictOptions(tempState), [tempState]);
+    const tempLocalLevelOptions = useMemo(() => getLocalLevelOptions(tempState, tempDistrict), [tempState, tempDistrict]);
+    const tempWardOptions = useMemo(() => getWardOptions(tempState, tempDistrict, tempLocalLevel), [tempState, tempDistrict, tempLocalLevel]);
+
+    React.useEffect(() => {
+      if (mirrorAddress) {
+        setValue(`${prefix}TempState` as any, permState);
+        setValue(`${prefix}TempDistrict` as any, permDistrict);
+        setValue(`${prefix}TempLocalLevel` as any, permLocalLevel);
+        setValue(`${prefix}TempWard` as any, permWard);
+      }
+    }, [mirrorAddress, permState, permDistrict, permLocalLevel, permWard, prefix]);
+
+    return (
+      <div className="px-10 pb-6">
+        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Permanent Address</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+          <Row 
+            labelNp="प्रदेश" labelEn="State" 
+            name={`${prefix}PermState`} register={register} as="select" options={stateOptions} 
+            onChange={(e: any) => { register(`${prefix}PermState` as any).onChange(e); setValue(`${prefix}PermDistrict` as any, ''); setValue(`${prefix}PermLocalLevel` as any, ''); setValue(`${prefix}PermWard` as any, ''); }}
+          />
+          <Row 
+            labelNp="जिल्ला" labelEn="District" 
+            name={`${prefix}PermDistrict`} register={register} as="select" options={permDistrictOptions} 
+            onChange={(e: any) => { register(`${prefix}PermDistrict` as any).onChange(e); setValue(`${prefix}PermLocalLevel` as any, ''); setValue(`${prefix}PermWard` as any, ''); }}
+          />
+          <Row 
+            labelNp="गा.पा. / न.पा." labelEn="Local Level" 
+            name={`${prefix}PermLocalLevel`} register={register} as="select" options={permLocalLevelOptions} 
+            onChange={(e: any) => { register(`${prefix}PermLocalLevel` as any).onChange(e); setValue(`${prefix}PermWard` as any, ''); }}
+          />
+          <Row labelNp="वडा नं." labelEn="Ward" name={`${prefix}PermWard`} register={register} as="select" options={permWardOptions} />
+        </div>
+
+        <div 
+          className="flex items-center gap-4 my-8 bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/20 cursor-pointer hover:bg-indigo-500/10 transition-all"
+          onClick={() => setValue(`${prefix}MirrorAddress` as any, !mirrorAddress)}
+        >
+          <div className={cn(
+            "w-5 h-5 rounded border flex items-center justify-center transition-all",
+            mirrorAddress ? "bg-indigo-600 border-indigo-600" : "bg-white/5 border-white/10"
+          )}>
+            {mirrorAddress && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+          </div>
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
+          <input type="hidden" {...register(`${prefix}MirrorAddress` as any)} />
+        </div>
+
+        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Temporary Address</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+          <Row 
+            labelNp="प्रदेश" labelEn="State" 
+            name={`${prefix}TempState`} register={register} as="select" options={stateOptions} disabled={mirrorAddress}
+            onChange={(e: any) => { register(`${prefix}TempState` as any).onChange(e); setValue(`${prefix}TempDistrict` as any, ''); setValue(`${prefix}TempLocalLevel` as any, ''); setValue(`${prefix}TempWard` as any, ''); }}
+          />
+          <Row 
+            labelNp="जिल्ला" labelEn="District" 
+            name={`${prefix}TempDistrict`} register={register} as="select" options={tempDistrictOptions} disabled={mirrorAddress}
+            onChange={(e: any) => { register(`${prefix}TempDistrict` as any).onChange(e); setValue(`${prefix}TempLocalLevel` as any, ''); setValue(`${prefix}TempWard` as any, ''); }}
+          />
+          <Row 
+            labelNp="गा.पा. / न.पा." labelEn="Local Level" 
+            name={`${prefix}TempLocalLevel`} register={register} as="select" options={tempLocalLevelOptions} disabled={mirrorAddress}
+            onChange={(e: any) => { register(`${prefix}TempLocalLevel` as any).onChange(e); setValue(`${prefix}TempWard` as any, ''); }}
+          />
+          <Row labelNp="वडा नं." labelEn="Ward" name={`${prefix}TempWard`} register={register} as="select" options={tempWardOptions} disabled={mirrorAddress} />
+        </div>
+      </div>
+    );
+  };
 
   const onSubmit = (data: FamilyData) => {
     updateFormData(data);
@@ -131,7 +194,7 @@ export const Step2Family: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in zoom-in-95 duration-700 px-4">
-      <SectionCard title="Patrilineal Lineage">
+      <SectionCard title="Father's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row labelNp="पहिलो नाम" labelEn="First Name" name="fatherFirstNameNp" register={register} error={errors.fatherFirstNameNp} />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="fatherFirstNameEn" register={register} error={errors.fatherFirstNameEn} />
@@ -140,56 +203,29 @@ export const Step2Family: React.FC = () => {
             <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="fatherCitizenshipNo" register={register} />
             <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="fatherNationality" register={register} />
          </div>
-
-         <div className="px-10 pb-6">
-           <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Permanent Address</div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-              <Row labelNp="प्रदेश" labelEn="State" name="fatherPermState" register={register} as="select" options={stateOptions} />
-              <Row labelNp="जिल्ला" labelEn="District" name="fatherPermDistrict" register={register} as="select" options={fatherPermDistrictOptions} />
-              <Row labelNp="गा.पा. / न.पा." labelEn="Local Level" name="fatherPermLocalLevel" register={register} as="select" options={fatherPermLocalLevelOptions} />
-              <Row labelNp="वडा नं." labelEn="Ward" name="fatherPermWard" register={register} as="select" options={fatherPermWardOptions} />
-           </div>
-
-           <div 
-             className="flex items-center gap-4 my-8 bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/20 cursor-pointer hover:bg-indigo-500/10 transition-all"
-             onClick={() => setValue('fatherMirrorAddress', !fatherMirrorAddress)}
-           >
-             <div className={cn(
-               "w-5 h-5 rounded border flex items-center justify-center transition-all",
-               fatherMirrorAddress ? "bg-indigo-600 border-indigo-600" : "bg-white/5 border-white/10"
-             )}>
-               {fatherMirrorAddress && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-             </div>
-             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
-             <input type="hidden" {...register('fatherMirrorAddress')} />
-           </div>
-
-           <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 opacity-70">Temporary Address</div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-              <Row labelNp="प्रदेश" labelEn="State" name="fatherTempState" register={register} as="select" options={stateOptions} disabled={fatherMirrorAddress} />
-              <Row labelNp="जिल्ला" labelEn="District" name="fatherTempDistrict" register={register} as="select" options={fatherTempDistrictOptions} disabled={fatherMirrorAddress} />
-              <Row labelNp="गा.पा. / न.पा." labelEn="Local Level" name="fatherTempLocalLevel" register={register} as="select" options={fatherTempLocalLevelOptions} disabled={fatherMirrorAddress} />
-              <Row labelNp="वडा नं." labelEn="Ward" name="fatherTempWard" register={register} as="select" options={fatherTempWardOptions} disabled={fatherMirrorAddress} />
-           </div>
-         </div>
+         <RelativeAddressGroup prefix="father" label="Father" />
       </SectionCard>
 
-      <SectionCard title="Matrilineal Lineage">
+      <SectionCard title="Mother's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row labelNp="पहिलो नाम" labelEn="First Name" name="motherFirstNameNp" register={register} error={errors.motherFirstNameNp} />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="motherFirstNameEn" register={register} error={errors.motherFirstNameEn} />
             <Row labelNp="थर" labelEn="Last Name" name="motherLastNameNp" register={register} error={errors.motherLastNameNp} />
             <Row labelNp="Last Name" labelEn="थर" name="motherLastNameEn" register={register} error={errors.motherLastNameEn} />
+            <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="motherNationality" register={register} />
          </div>
+         <RelativeAddressGroup prefix="mother" label="Mother" />
       </SectionCard>
 
-       <SectionCard title="Ancestral Registry">
+       <SectionCard title="Grandfather's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row labelNp="पहिलो नाम" labelEn="First Name" name="grandFatherFirstNameNp" register={register} error={errors.grandFatherFirstNameNp} />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="grandFatherFirstNameEn" register={register} error={errors.grandFatherFirstNameEn} />
             <Row labelNp="थर" labelEn="Last Name" name="grandFatherLastNameNp" register={register} error={errors.grandFatherLastNameNp} />
             <Row labelNp="Last Name" labelEn="थर" name="grandFatherLastNameEn" register={register} error={errors.grandFatherLastNameEn} />
+            <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="grandFatherNationality" register={register} />
          </div>
+         <RelativeAddressGroup prefix="grandFather" label="Grandfather" />
       </SectionCard>
 
       <div className="flex justify-between items-center mt-16 pb-12">
