@@ -3,6 +3,8 @@ import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
 import { Home, LogOut, User, LayoutDashboard } from 'lucide-react';
 import { signOut } from '../../lib/firebase';
+import { Footer } from './Footer';
+import nepalEmblem from '../../assets/Emblem_of_Nepal.svg';
 
 const steps = [
   'Applicant Data',
@@ -18,7 +20,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   const { step, setStep, user, view, setView, resetForm } = useFormContext();
 
   return (
-    <div className="min-h-screen font-sans bg-slate-50">
+    <div className="min-h-screen font-sans bg-slate-50 flex flex-col">
       {/* Top Banner - Government Branding */}
       <div className="bg-[#1a4a8c] text-white border-b-4 border-[#dc2626]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -35,37 +37,17 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               </div>
               <span className="font-bold text-sm tracking-tight hidden sm:block">Portal Home</span>
             </div> */}
-            <div className="flex flex-col border-l border-white/20 pl-4 md:pl-6">
-                <img src="https://citizenportal.donidcr.gov.np/_next/image?url=%2Femblem_of_Nepal.png&w=256&q=75" alt="Logo" className="w-8 h-8 mb-2" />
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#e2e8f0]/80">नेपाल सरकार | Government of Nepal</span>
-              <span className="text-xs md:text-sm font-black tracking-tight uppercase">Digital registry for landless and informal settlements</span>
+            <div className="flex items-center gap-4">
+              <img 
+                src={nepalEmblem} 
+                alt="Logo" 
+                className="w-10 h-10 md:w-12 md:h-12 object-contain" 
+              />
+              <div className="flex flex-col">
+                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest text-[#e2e8f0]/80 leading-tight">नेपाल सरकार | Government of Nepal</span>
+                <span className="text-sm md:text-base font-black tracking-tight uppercase leading-tight">Digital registry for landless and informal settlements</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3 md:gap-6">
-             <div className="flex items-center gap-2 md:gap-3 bg-white/10 px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white/10">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/30 overflow-hidden shrink-0">
-                  {user?.photoURL ? (
-                    <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={14} className="text-white" />
-                  )}
-                </div>
-                <div className="flex flex-col hidden xs:flex">
-                  <span className="text-[10px] font-black uppercase tracking-tight text-white leading-none truncate max-w-[100px] md:max-w-none">
-                    {user?.email === 'test@gmail.com' ? 'SYSTEM PERSONNEL' : (user?.displayName || 'PORTAL USER')}
-                  </span>
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-slate-300 mt-1">
-                    {user?.email === 'test@gmail.com' ? 'ADMIN' : 'USER'}
-                  </span>
-                </div>
-                <button 
-                  onClick={() => signOut()}
-                  className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/70 hover:text-white"
-                  title="Sign Out"
-                >
-                   <LogOut size={16} />
-                </button>
-             </div>
           </div>
         </div>
       </div>
@@ -91,6 +73,15 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           >
             Applicants
           </button>
+          
+          <div className="ml-auto">
+            <button 
+              onClick={() => signOut()}
+              className="flex items-center gap-2 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all rounded-lg"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -120,9 +111,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       )}
 
 
-      <main className="max-w-[1400px] mx-auto py-8">
+      <main className="max-w-[1400px] mx-auto py-8 flex-grow">
         {children}
       </main>
+
+      <Footer />
     </div>
   );
 };
