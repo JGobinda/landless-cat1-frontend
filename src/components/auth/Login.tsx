@@ -34,7 +34,7 @@ export const Login: React.FC = () => {
         <div className="relative z-10 flex flex-col items-center">
           <div className="mb-8 flex flex-col items-center">
             <div className="w-16 h-16 bg-[#1a4a8c]/10 rounded-2xl flex items-center justify-center mb-4 border border-[#1a4a8c]/20">
-              <LogIn className="w-8 h-8 text-[#1a4a8c]" />
+              <img src="https://citizenportal.donidcr.gov.np/_next/image?url=%2Femblem_of_Nepal.png&w=256&q=75" alt="Logo" className="w-8 h-8" />
             </div>
             <div className="text-center">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-tight">नेपाल सरकार</p>
@@ -42,8 +42,8 @@ export const Login: React.FC = () => {
             </div>
           </div>
           
-          <h1 className="text-2xl font-black text-slate-800 mb-2 tracking-tighter uppercase text-center">Identity Portal</h1>
-          <p className="text-slate-500 text-xs mb-10 font-medium tracking-tight text-center">Department of National ID and Civil Registration</p>
+          <h1 className="text-2xl font-black text-slate-800 mb-2 tracking-tighter uppercase text-center">Digital Registry for landless and informal settlements</h1>
+          {/* <p className="text-slate-500 text-xs mb-10 font-medium tracking-tight text-center">Department of National ID and Civil Registration</p> */}
 
           <form onSubmit={handleLogin} className="w-full space-y-6">
             <div className="space-y-4">
@@ -89,7 +89,7 @@ export const Login: React.FC = () => {
               disabled={isLoggingIn}
               className="w-full group flex items-center justify-center gap-4 px-6 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 transition-all active:scale-95 shadow-xl shadow-blue-900/20 disabled:opacity-50"
             >
-              {isLoggingIn ? 'Verifying...' : 'Access Authority System'}
+              {isLoggingIn ? 'Verifying...' : 'Login'}
               {!isLoggingIn && <LogIn className="w-4 h-4" />}
             </button>
           </form>

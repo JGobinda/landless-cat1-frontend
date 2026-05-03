@@ -33,8 +33,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               <span className="font-bold text-sm tracking-tight hidden sm:block">Portal Home</span>
             </div>
             <div className="flex flex-col border-l border-white/20 pl-4 md:pl-6">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#e2e8f0]/80">नेपाल सरकार | Government of Nepal</span>
-              <span className="text-xs md:text-sm font-black tracking-tight uppercase">National ID Portal</span>
+              <img src="https://citizenportal.donidcr.gov.np/_next/image?url=%2Femblem_of_Nepal.png&w=256&q=75" alt="Logo" className="w-8 h-8 mb-2" />
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#e2e8f0]/80">नेपl सरकार | Government of Nepal</span>
+              <span className="text-xs md:text-sm font-black tracking-tight uppercase">Digital registry for landless and informal settlements</span>
             </div>
           </div>
           <div className="flex items-center gap-3 md:gap-6">
