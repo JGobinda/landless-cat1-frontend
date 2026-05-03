@@ -69,6 +69,16 @@ export const Step4Review: React.FC = () => {
           {/* Personal Summary */}
           <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 relative overflow-hidden group">
             <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Personal Identifiers</h3>
+            <div className="flex flex-col items-center mb-10">
+               {formData.applicantPhoto ? (
+                 <img src={formData.applicantPhoto} alt="Applicant" className="w-32 h-32 rounded-3xl object-cover border-4 border-slate-50 shadow-lg shadow-blue-900/10" />
+               ) : (
+                 <div className="w-32 h-32 rounded-3xl bg-slate-50 border-4 border-slate-100 flex items-center justify-center text-slate-300">
+                   <Plus size={32} />
+                 </div>
+               )}
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-4">Verified Biometric Photo</span>
+            </div>
             <div className="space-y-6 relative z-10">
                <SummaryItem label="Full Name (EN)" value={`${formData.firstNameEn} ${formData.lastNameEn}`} />
                <SummaryItem label="Full Name (NP)" value={`${formData.firstNameNp} ${formData.lastNameNp}`} />
@@ -131,13 +141,91 @@ export const Step4Review: React.FC = () => {
           </div>
        </div>
 
-       <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pb-12">
-          <button 
-             onClick={() => setStep(2)}
-             className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] hover:text-[#1a4a8c] transition-colors"
-          >
-             Modify Parameters
-          </button>
+         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 mb-10 group relative overflow-hidden">
+            <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
+            <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Land & Housing Assets</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+               <SummaryItem label="Land Ownership" value={formData.hasLandNepal === 'yes' ? 'HAS LAND' : 'NO LAND'} />
+               {formData.hasLandNepal === 'no' && formData.landNoOwnershipReason && (
+                 <SummaryItem label="Reason (Landless)" value={formData.landNoOwnershipReason} />
+               )}
+               {formData.hasLandNepal === 'yes' && (
+                 <>
+                   <SummaryItem label="Landowner" value={formData.landOwnerName} />
+                   <SummaryItem label="Relation" value={formData.landRelationToHead} />
+                   <SummaryItem label="Location" value={formData.landLocation} />
+                   <SummaryItem label="Area" value={formData.landArea} />
+                   <SummaryItem label="Usability" value={formData.isLandUsable} />
+                 </>
+               )}
+               {(formData.hasLandNepal === 'no' || formData.isLandUsable === 'not_usable') && (
+                 <SummaryItem label="Land Solution" value={formData.landSolutionOption} />
+               )}
+               <SummaryItem label="Has House" value={formData.hasHouse === 'yes' ? 'YES' : 'NO'} />
+               {formData.hasHouse === 'yes' ? (
+                 <SummaryItem label="House Type" value={formData.houseType} />
+               ) : (
+                 <SummaryItem label="Housing Solution" value={formData.housingSolutionOption} />
+               )}
+               <SummaryItem label="Required Form" value={formData.requiredHousingForm} />
+            </div>
+         </div>
+
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            {/* Economic Summary */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 group relative overflow-hidden">
+               <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
+               <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Economic Status</h3>
+               <div className="space-y-6">
+                  <SummaryItem label="Main Income Source" value={formData.mainIncomeSource} />
+                  <SummaryItem label="Monthly Income" value={formData.monthlyIncome} />
+                  <SummaryItem label="Savings/Assets" value={formData.hasSavings === 'yes' ? 'HAS SAVINGS' : 'NO SAVINGS'} />
+                  {formData.hasSavings === 'yes' && formData.savingsDetails && (
+                    <SummaryItem label="Details" value={formData.savingsDetails} />
+                  )}
+                  <SummaryItem label="Empowerment Option" value={formData.empowermentOption} />
+               </div>
+            </div>
+
+            {/* Health Summary */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 group relative overflow-hidden">
+               <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-red-500/5 rounded-full blur-[100px] pointer-events-none" />
+               <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Health Status</h3>
+               <div className="space-y-6">
+                  <SummaryItem label="Chronic Illness" value={formData.hasChronicIllness === 'yes' ? 'YES' : 'NO'} />
+                  {formData.hasChronicIllness === 'yes' && formData.chronicIllnessDetails?.map((d: any, i: number) => d.who && (
+                    <div key={i} className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Patient {i+1}</p>
+                      <p className="text-xs font-bold text-slate-800">{d.who} - {d.disease} ({d.condition})</p>
+                    </div>
+                  ))}
+               </div>
+            </div>
+         </div>
+
+         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 mb-16 relative overflow-hidden">
+            <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Family Demographic Census</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
+               <SummaryItem label="Pregnant" value={formData.pregnantCount || '0'} />
+               <SummaryItem label="Nursing" value={formData.nursingCount || '0'} />
+               <SummaryItem label="Child < 5 (B)" value={formData.childrenUnder5Boy || '0'} />
+               <SummaryItem label="Child < 5 (G)" value={formData.childrenUnder5Girl || '0'} />
+               <SummaryItem label="Child 5-16 (M)" value={formData.children5to16Boy || '0'} />
+               <SummaryItem label="Child 5-16 (F)" value={formData.children5to16Girl || '0'} />
+               <SummaryItem label="Senior 65+ (M)" value={formData.seniors65PlusMale || '0'} />
+               <SummaryItem label="Senior 65+ (F)" value={formData.seniors65PlusFemale || '0'} />
+               <SummaryItem label="Disability (M)" value={formData.disabilityMale || '0'} />
+               <SummaryItem label="Disability (F)" value={formData.disabilityFemale || '0'} />
+            </div>
+         </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pb-12">
+           <button 
+              onClick={() => setStep(3)}
+              className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] hover:text-[#1a4a8c] transition-colors"
+           >
+              Modify Parameters
+           </button>
           <button 
              onClick={handleSubmit}
              disabled={isSaving}

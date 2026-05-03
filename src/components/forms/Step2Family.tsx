@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { familySchema, FamilyData } from '../../lib/schema';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { Plus, Trash2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { familySchema, FamilyData } from '../../lib/schema';
 import locationsData from '../../lib/locations.json';
 import Sanscript from 'sanscript';
 
@@ -71,7 +72,7 @@ const GroupHeader = ({ title }: { title: string }) => (
 
 export const Step2Family: React.FC = () => {
   const { formData, updateFormData, setStep } = useFormContext();
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FamilyData>({
+  const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<FamilyData>({
     resolver: zodResolver(familySchema),
     defaultValues: {
       ...formData as FamilyData,
@@ -79,6 +80,11 @@ export const Step2Family: React.FC = () => {
       motherMirrorAddress: formData.motherMirrorAddress || false,
       grandFatherMirrorAddress: formData.grandFatherMirrorAddress || false,
     }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "familyMembers"
   });
 
   const watchAll = watch();
@@ -128,7 +134,7 @@ export const Step2Family: React.FC = () => {
     ];
   };
 
-  const RelativeAddressGroup = ({ prefix, label }: { prefix: 'father' | 'mother' | 'grandFather', label: string }) => {
+  const RelativeAddressGroup = ({ prefix, label }: { prefix: 'father' | 'mother' | 'grandFather' | 'grandMother' | 'spouse', label: string }) => {
     const permState = watchAll[`${prefix}PermState` as keyof FamilyData] as string;
     const permDistrict = watchAll[`${prefix}PermDistrict` as keyof FamilyData] as string;
     const permLocalLevel = watchAll[`${prefix}PermLocalLevel` as keyof FamilyData] as string;
@@ -158,7 +164,20 @@ export const Step2Family: React.FC = () => {
 
     return (
       <div className="px-10 pb-6">
-        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Permanent Address</div>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{label}'s Permanent Address</div>
+        <div 
+          className="flex items-center gap-4 my-8 bg-[#1a4a8c]/5 p-4 rounded-xl border border-[#1a4a8c]/10 cursor-pointer hover:bg-[#1a4a8c]/10 transition-all font-sans"
+          onClick={() => setValue(`${prefix}MirrorAddress` as any, !mirrorAddress)}
+        >
+          <div className={cn(
+            "w-5 h-5 rounded border flex items-center justify-center transition-all",
+            mirrorAddress ? "bg-[#1a4a8c] border-[#1a4a8c]" : "bg-white border-slate-300"
+          )}>
+            {mirrorAddress && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+          </div>
+          <span className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-widest">Copy Applicant's Permanent Address to {label}'s Permanent Address</span>
+          <input type="hidden" {...register(`${prefix}MirrorAddress` as any)} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
           <Row 
             labelNp="प्रदेश" labelEn="State" 
@@ -176,40 +195,9 @@ export const Step2Family: React.FC = () => {
             onChange={(e: any) => { register(`${prefix}PermLocalLevel` as any).onChange(e); setValue(`${prefix}PermWard` as any, ''); }}
           />
           <Row labelNp="वडा नं." labelEn="Ward" name={`${prefix}PermWard`} register={register} as="select" options={permWardOptions} />
-        </div>
+          <Row labelNp="गाउँ / टोल" name={`${prefix}PermVillage`} register={register} error={(errors as any)[`${prefix}PermVillage`]} />
+          <Row labelEn="Foreign Address" name={`${prefix}ForeignAddress`} register={register} error={(errors as any)[`${prefix}ForeignAddress`]} />
 
-        <div 
-          className="flex items-center gap-4 my-8 bg-[#1a4a8c]/5 p-4 rounded-xl border border-[#1a4a8c]/10 cursor-pointer hover:bg-[#1a4a8c]/10 transition-all font-sans"
-          onClick={() => setValue(`${prefix}MirrorAddress` as any, !mirrorAddress)}
-        >
-          <div className={cn(
-            "w-5 h-5 rounded border flex items-center justify-center transition-all",
-            mirrorAddress ? "bg-[#1a4a8c] border-[#1a4a8c]" : "bg-white border-slate-300"
-          )}>
-            {mirrorAddress && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-          </div>
-          <span className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
-          <input type="hidden" {...register(`${prefix}MirrorAddress` as any)} />
-        </div>
-
-        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Temporary Address</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-          <Row 
-            labelNp="प्रदेश" labelEn="State" 
-            name={`${prefix}TempState`} register={register} as="select" options={stateOptions} disabled={mirrorAddress}
-            onChange={(e: any) => { register(`${prefix}TempState` as any).onChange(e); setValue(`${prefix}TempDistrict` as any, ''); setValue(`${prefix}TempLocalLevel` as any, ''); setValue(`${prefix}TempWard` as any, ''); }}
-          />
-          <Row 
-            labelNp="जिल्ला" labelEn="District" 
-            name={`${prefix}TempDistrict`} register={register} as="select" options={tempDistrictOptions} disabled={mirrorAddress}
-            onChange={(e: any) => { register(`${prefix}TempDistrict` as any).onChange(e); setValue(`${prefix}TempLocalLevel` as any, ''); setValue(`${prefix}TempWard` as any, ''); }}
-          />
-          <Row 
-            labelNp="गा.पा. / न.पा." labelEn="Local Level" 
-            name={`${prefix}TempLocalLevel`} register={register} as="select" options={tempLocalLevelOptions} disabled={mirrorAddress}
-            onChange={(e: any) => { register(`${prefix}TempLocalLevel` as any).onChange(e); setValue(`${prefix}TempWard` as any, ''); }}
-          />
-          <Row labelNp="वडा नं." labelEn="Ward" name={`${prefix}TempWard`} register={register} as="select" options={tempWardOptions} disabled={mirrorAddress} />
         </div>
       </div>
     );
@@ -226,26 +214,40 @@ export const Step2Family: React.FC = () => {
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row 
               labelNp="पहिलो नाम" 
-              labelEn="First Name" 
+              // labelEn="First Name" 
               name="fatherFirstNameNp" 
               register={register} 
               error={errors.fatherFirstNameNp} 
               placeholder="e.g. 'nepAl' for 'नेपाल'"
               onChange={(e: any) => handleTransliteration(e, 'fatherFirstNameNp', 'fatherFirstNameEn')}
             />
-            <Row labelNp="First Name" labelEn="पहिलो नाम" name="fatherFirstNameEn" register={register} error={errors.fatherFirstNameEn} />
+            <Row labelNp="First Name" name="fatherFirstNameEn" register={register} error={errors.fatherFirstNameEn} />
+            <Row 
+              labelNp="बीचको नाम" 
+              // labelEn="First Name" 
+              name="fatherMiddleNameNp" 
+              register={register} 
+              error={errors.fatherMiddleNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'fatherMiddleNameNp', 'fatherMiddleNameEn')}
+            />
+            <Row labelNp="Middle Name" name="fatherMiddleNameEn" register={register} error={errors.fatherMiddleNameEn} />
             <Row 
               labelNp="थर" 
-              labelEn="Last Name" 
+              // labelEn="Last Name" 
               name="fatherLastNameNp" 
               register={register} 
               error={errors.fatherLastNameNp} 
               placeholder="e.g. 'sharma' for 'शर्मा'"
               onChange={(e: any) => handleTransliteration(e, 'fatherLastNameNp', 'fatherLastNameEn')}
             />
-            <Row labelNp="Last Name" labelEn="थर" name="fatherLastNameEn" register={register} error={errors.fatherLastNameEn} />
+            
+            <Row labelNp="Last Name" name="fatherLastNameEn" register={register} error={errors.fatherLastNameEn} />
             <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="fatherCitizenshipNo" register={register} />
-            <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="fatherNationality" register={register} />
+            <Row labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="NIN" name="fatherNidNo" register={register} />
+            <Row labelEn="राष्ट्रियता" name="fatherNationality" register={register} as="select" options={[{val: '', label: 'SELECT NATIONALITY'}, {val: 'NEPALI', label: 'NEPALI'}, {val: 'FOREIGN', label: 'FOREIGN'}]} />
+            <Row labelNp="Nationality" name="fatherNationality" register={register} />
+
          </div>
          <RelativeAddressGroup prefix="father" label="Father" />
       </SectionCard>
@@ -254,26 +256,38 @@ export const Step2Family: React.FC = () => {
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row 
               labelNp="पहिलो नाम" 
-              labelEn="First Name" 
+              // labelEn="First Name" 
               name="motherFirstNameNp" 
               register={register} 
               error={errors.motherFirstNameNp} 
               placeholder="e.g. 'nepAl' for 'नेपाल'"
               onChange={(e: any) => handleTransliteration(e, 'motherFirstNameNp', 'motherFirstNameEn')}
             />
-            <Row labelNp="First Name" labelEn="पहिलो नाम" name="motherFirstNameEn" register={register} error={errors.motherFirstNameEn} />
+            <Row labelNp="First Name" name="motherFirstNameEn" register={register} error={errors.motherFirstNameEn} />
+            <Row 
+              labelNp="बीचको नाम" 
+              // labelEn="First Name" 
+              name="motherMiddleNameNp" 
+              register={register} 
+              error={errors.motherMiddleNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'motherMiddleNameNp', 'motherMiddleNameEn')}
+            />
+            <Row labelNp="Middle Name" name="motherMiddleNameEn" register={register} error={errors.motherMiddleNameEn} />
             <Row 
               labelNp="थर" 
-              labelEn="Last Name" 
+              // labelEn="Last Name" 
               name="motherLastNameNp" 
               register={register} 
               error={errors.motherLastNameNp} 
               placeholder="e.g. 'sharma' for 'शर्मा'"
               onChange={(e: any) => handleTransliteration(e, 'motherLastNameNp', 'motherLastNameEn')}
             />
-            <Row labelNp="Last Name" labelEn="थर" name="motherLastNameEn" register={register} error={errors.motherLastNameEn} />
+            <Row labelNp="Last Name" name="motherLastNameEn" register={register} error={errors.motherLastNameEn} />
             <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="motherCitizenshipNo" register={register} />
-            <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="motherNationality" register={register} />
+            <Row labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="NIN" name="motherNidNo" register={register} />
+            <Row labelEn="राष्ट्रियता" name="motherNationality" register={register} as="select" options={[{val: '', label: 'SELECT NATIONALITY'}, {val: 'NEPALI', label: 'NEPALI'}, {val: 'FOREIGN', label: 'FOREIGN'}]} />
+            <Row labelNp="Nationality" name="motherNationality" register={register} />
          </div>
          <RelativeAddressGroup prefix="mother" label="Mother" />
       </SectionCard>
@@ -282,29 +296,221 @@ export const Step2Family: React.FC = () => {
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
             <Row 
               labelNp="पहिलो नाम" 
-              labelEn="First Name" 
               name="grandFatherFirstNameNp" 
               register={register} 
               error={errors.grandFatherFirstNameNp} 
               placeholder="e.g. 'nepAl' for 'नेपाल'"
               onChange={(e: any) => handleTransliteration(e, 'grandFatherFirstNameNp', 'grandFatherFirstNameEn')}
             />
-            <Row labelNp="First Name" labelEn="पहिलो नाम" name="grandFatherFirstNameEn" register={register} error={errors.grandFatherFirstNameEn} />
+            <Row labelNp="First Name" name="grandFatherFirstNameEn" register={register} error={errors.grandFatherFirstNameEn} />
+            <Row 
+              labelNp="बीचको नाम" 
+              name="grandFatherMiddleNameNp" 
+              register={register} 
+              error={errors.grandFatherMiddleNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'grandFatherMiddleNameNp', 'grandFatherMiddleNameEn')}
+            />
+            <Row labelNp="Middle Name" name="grandFatherMiddleNameEn" register={register} error={errors.grandFatherMiddleNameEn} />
+
             <Row 
               labelNp="थर" 
-              labelEn="Last Name" 
               name="grandFatherLastNameNp" 
               register={register} 
               error={errors.grandFatherLastNameNp} 
               placeholder="e.g. 'sharma' for 'शर्मा'"
               onChange={(e: any) => handleTransliteration(e, 'grandFatherLastNameNp', 'grandFatherLastNameEn')}
             />
-            <Row labelNp="Last Name" labelEn="थर" name="grandFatherLastNameEn" register={register} error={errors.grandFatherLastNameEn} />
+            <Row labelNp="Last Name" name="grandFatherLastNameEn" register={register} error={errors.grandFatherLastNameEn} />
             <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="grandFatherCitizenshipNo" register={register} />
-            <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="grandFatherNationality" register={register} />
+            <Row labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="NIN" name="grandFatherNidNo" register={register} />
+            <Row labelEn="राष्ट्रियता" name="grandFatherNationality" register={register} as="select" options={[{val: '', label: 'SELECT NATIONALITY'}, {val: 'NEPALI', label: 'NEPALI'}, {val: 'FOREIGN', label: 'FOREIGN'}]} />
+            <Row labelNp="Nationality" name="grandFatherNationality" register={register} />
+
          </div>
          <RelativeAddressGroup prefix="grandFather" label="Grandfather" />
       </SectionCard>
+
+      <SectionCard title="Grandmother's Details">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
+            <Row 
+              labelNp="पहिलो नाम" 
+              name="grandMotherFirstNameNp" 
+              register={register} 
+              error={errors.grandMotherFirstNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'grandMotherFirstNameNp', 'grandMotherFirstNameEn')}
+            />
+            <Row labelNp="First Name" name="grandMotherFirstNameEn" register={register} error={errors.grandMotherFirstNameEn} />
+            <Row 
+              labelNp="बीचको नाम" 
+              name="grandMotherMiddleNameNp" 
+              register={register} 
+              error={errors.grandMotherMiddleNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'grandMotherMiddleNameNp', 'grandMotherMiddleNameEn')}
+            />
+            <Row labelNp="Middle Name" name="grandMotherMiddleNameEn" register={register} error={errors.grandMotherMiddleNameEn} />
+
+            <Row 
+              labelNp="थर" 
+              name="grandMotherLastNameNp" 
+              register={register} 
+              error={errors.grandMotherLastNameNp} 
+              placeholder="e.g. 'sharma' for 'शर्मा'"
+              onChange={(e: any) => handleTransliteration(e, 'grandMotherLastNameNp', 'grandMotherLastNameEn')}
+            />
+            <Row labelNp="Last Name" name="grandMotherLastNameEn" register={register} error={errors.grandMotherLastNameEn} />
+            <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="grandMotherCitizenshipNo" register={register} />
+            <Row labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="NIN" name="grandMotherNidNo" register={register} />
+            <Row labelEn="राष्ट्रियता" name="grandMotherNationality" register={register} as="select" options={[{val: '', label: 'SELECT NATIONALITY'}, {val: 'NEPALI', label: 'NEPALI'}, {val: 'FOREIGN', label: 'FOREIGN'}]} />
+            <Row labelNp="Nationality" name="grandMotherNationality" register={register} />
+
+         </div>
+         <RelativeAddressGroup prefix="grandMother" label="Grandmother" />
+      </SectionCard>
+      <SectionCard title="Spouse's Details">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
+            <Row 
+              labelNp="पहिलो नाम" 
+              name="spouseFirstNameNp" 
+              register={register} 
+              error={errors.spouseFirstNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'spouseFirstNameNp', 'spouseFirstNameEn')}
+            />
+            <Row labelNp="First Name" name="spouseFirstNameEn" register={register} error={errors.spouseFirstNameEn} />
+            <Row 
+              labelNp="बीचको नाम" 
+              name="spouseMiddleNameNp" 
+              register={register} 
+              error={errors.spouseMiddleNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'spouseMiddleNameNp', 'spouseMiddleNameEn')}
+            />
+            <Row labelNp="Middle Name" name="spouseMiddleNameEn" register={register} error={errors.spouseMiddleNameEn} />
+
+            <Row 
+              labelNp="थर" 
+              name="spouseLastNameNp" 
+              register={register} 
+              error={errors.spouseLastNameNp} 
+              placeholder="e.g. 'sharma' for 'शर्मा'"
+              onChange={(e: any) => handleTransliteration(e, 'spouseLastNameNp', 'spouseLastNameEn')}
+            />
+            <Row labelNp="Last Name" name="spouseLastNameEn" register={register} error={errors.spouseLastNameEn} />
+            <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="spouseCitizenshipNo" register={register} />
+            <Row labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="NIN" name="spouseNidNo" register={register} />
+            <Row labelEn="राष्ट्रियता" name="spouseNationality" register={register} as="select" options={[{val: '', label: 'SELECT NATIONALITY'}, {val: 'NEPALI', label: 'NEPALI'}, {val: 'FOREIGN', label: 'FOREIGN'}]} />
+            <Row labelNp="Nationality" name="spouseNationality" register={register} />
+         </div>
+         <RelativeAddressGroup prefix="spouse" label="Spouse" />
+      </SectionCard>
+      
+      <div className="mb-10 mt-12 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+        <div className="flex items-center justify-between p-6 md:p-8 border-b border-slate-100 bg-slate-50/50">
+          <h3 className="text-xl font-black text-slate-800 tracking-tight">Family Information</h3>
+          <button
+            type="button"
+            onClick={() => append({ name: '', relation: '', age: '', nin: '', generation: '', landElsewhere: '' })}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-[#1a4a8c] rounded-xl font-bold text-xs hover:bg-[#1a4a8c] hover:text-white hover:border-[#1a4a8c] transition-all shadow-sm group"
+          >
+            <Plus size={16} className="text-[#1a4a8c] group-hover:text-white transition-colors" />
+            Add
+          </button>
+        </div>
+        
+        <div className="p-6 md:p-8 space-y-6">
+          {fields.map((field, index) => (
+            <div key={field.id} className="p-6 border border-slate-200 rounded-2xl bg-white relative group">
+              <div className="flex justify-between items-center mb-6">
+                <span className="font-bold text-slate-800 text-sm">Member {index + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
+                  title="Remove Member"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">Name</label>
+                  <input 
+                    {...register(`familyMembers.${index}.name` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 placeholder:text-transparent"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">Relation</label>
+                  <select
+                    {...register(`familyMembers.${index}.relation` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20"
+                  >
+                    <option value="">SELECT</option>
+                    <option value="son">Son</option>
+                    <option value="daughter">Daughter</option>
+                    <option value="father">Father In Law</option>
+                    <option value="mother">Mother In Law</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">Age</label>
+                  <input 
+                    type="text"
+                    {...register(`familyMembers.${index}.age` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 placeholder:text-transparent"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">NIN/ Citizen/ Birth Certificate</label>
+                  <input 
+                    type="text"
+                    {...register(`familyMembers.${index}.nin` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 placeholder:text-transparent"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">Occupation</label>
+                  <select
+                    {...register(`familyMembers.${index}.generation` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20"
+                  >
+                    <option value="">SELECT</option>
+                    <option value="1">Agriculture Work</option>
+                    <option value="2">Self Employment</option>
+                    <option value="3">Daily Wages Labour</option>
+                    <option value="4">Foreign Employment</option>
+                    <option value="5">Business</option>
+                    <option value="6">Student</option>
+                    <option value="7">Job/Service</option>
+                    <option value="8">Minor (Child)</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-600">Gender</label>
+                  <select
+                    {...register(`familyMembers.${index}.landElsewhere` as const)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20"
+                  >
+                    <option value="">SELECT</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+          {fields.length === 0 && (
+            <div className="text-center py-12 text-slate-400 text-sm font-medium border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">
+              कुनै परिवारको सदस्य थपिएको छैन। (No family members added yet.)
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="flex justify-between items-center mt-16 pb-12">
         <button 
@@ -318,7 +524,7 @@ export const Step2Family: React.FC = () => {
           type="submit"
           className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95"
         >
-          Proceed to Preview
+          Proceed to Land & Housing
         </button>
       </div>
     </form>

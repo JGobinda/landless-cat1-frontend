@@ -3,7 +3,7 @@ import { db, OperationType, handleFirestoreError } from '../../lib/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useFormContext } from '../../context/FormContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Plus, Search, Calendar, FileText, ChevronRight, Filter, X, MapPin, Phone, Users, ShieldCheck } from 'lucide-react';
+import { User, Plus, Search, Calendar, FileText, ChevronRight, Filter, X, MapPin, Phone, Users, ShieldCheck, Clock, FileCheck, XCircle, MoreHorizontal } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const DeleteConfirmationModal = ({ app, onClose, onConfirm, isDeleting }: { app: any, onClose: () => void, onConfirm: () => void, isDeleting: boolean }) => {
@@ -279,13 +279,22 @@ const ApplicationModal = ({ app, onClose, startEditing, onDeleteClick }: { app: 
 };
 
 export const Dashboard: React.FC = () => {
-  const { setView, resetForm, startEditing, deleteApplication } = useFormContext();
+  const { setView, resetForm, startEditing, deleteApplication, view } = useFormContext();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenu(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const handleDelete = async () => {
     if (!appToDelete) return;
@@ -319,15 +328,30 @@ export const Dashboard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredApps = applications.filter(app => 
-    `${app.firstNameEn} ${app.lastNameEn}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.citizenshipNo?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredApps = applications.filter((app, idx) => {
+    const matchesSearch = `${app.firstNameEn} ${app.lastNameEn}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.citizenshipNo?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const cat = app.category || `Category ${(idx % 3) + 1}`;
+    const matchesCategory = categoryFilter === 'all' || cat === categoryFilter;
 
-  const stats = [
-    { label: 'Total Applications', value: applications.length, icon: FileText, color: 'text-indigo-400' },
-    { label: 'Pending Verification', value: applications.filter(a => a.currentStep < 3).length, icon: ShieldCheck, color: 'text-amber-400' },
-    { label: 'Registration Finalized', value: applications.filter(a => a.currentStep === 3).length, icon: Calendar, color: 'text-emerald-400' },
+    const matchesStatus = statusFilter === 'all' ? true : 
+      statusFilter === 'finalized' ? app.currentStep === 3 : app.currentStep < 3;
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const topStats = [
+    { label: 'Total Applicants', value: applications.length, icon: Users, color: 'text-blue-600' },
+    { label: 'Pending Applicants', value: applications.filter(a => a.currentStep < 3).length, icon: Clock, color: 'text-amber-500' },
+    { label: 'Approved Applicants', value: applications.filter(a => a.currentStep === 3).length, icon: FileCheck, color: 'text-emerald-500' },
+    { label: 'Rejected Applicants', value: 0, icon: XCircle, color: 'text-red-500' },
+  ];
+
+  const bottomStats = [
+    { label: 'First Category', sublabel: 'NID, नागरिकता र मतदाता परिचयपत्र भएका', value: 0 },
+    { label: 'Second Category', sublabel: 'NID छैन तर नागरिकता वा मतदाता परिचयपत्र छ', value: 0 },
+    { label: 'Third Category', sublabel: 'कुनै सरकारी कागजात नभएका', value: 0 },
   ];
 
   return (
@@ -355,64 +379,114 @@ export const Dashboard: React.FC = () => {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 bg-[#1a4a8c]/5 p-6 md:p-0 rounded-3xl md:bg-transparent">
         <div className="space-y-1 md:space-y-2">
-          <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase">Registry Portal</h1>
-          {/* <p className="text-slate-500 text-sm font-medium tracking-tight">Passport Application Management & Civil Records</p> */}
+          <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter ">
+            {view === 'list' ? 'Applicant List' : 'Dashboard'}
+          </h1>
+          <p className="text-slate-500 text-sm font-medium tracking-tight">सुकुम्बासी निवेदकहरूको समग्र विवरण</p>
         </div>
         
-        <button 
+        {/* <button 
           onClick={() => { resetForm(); setView('form'); }}
           className="flex items-center justify-center gap-4 px-8 py-5 bg-[#dc2626] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.22em] hover:bg-[#dc2626]/90 active:scale-95 transition-all shadow-xl shadow-red-900/20 w-full md:w-auto"
         >
           <Plus size={18} />
           Begin Registration
-        </button>
+        </button> */}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {stats.map((stat, idx) => (
-          <motion.div 
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl relative overflow-hidden group shadow-sm"
-          >
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <stat.icon size={56} />
-            </div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">{stat.label}</p>
-            <p className={cn("text-3xl md:text-4xl font-black tracking-tighter", stat.color.replace('indigo-400', '[#1a4a8c]').replace('amber-400', 'amber-600').replace('emerald-400', 'emerald-600'))}>{stat.value}</p>
-          </motion.div>
-        ))}
+      {/* Stats Section */}
+      {view === 'dashboard' && (
+      <div className="space-y-4">
+        {/* Top 4 Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {topStats.map((stat, idx) => (
+            <motion.div 
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-white border border-slate-200 p-6 rounded-[1rem] flex items-center justify-between shadow-sm"
+            >
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+              </div>
+              <div className={cn("p-2", stat.color)}>
+                <stat.icon size={28} strokeWidth={2} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Bottom 3 Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {bottomStats.map((stat, idx) => (
+            <motion.div 
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (topStats.length + idx) * 0.1 }}
+              className="bg-white border border-slate-200 p-6 rounded-[1rem] flex flex-col gap-4 shadow-sm"
+            >
+              <div className="flex flex-col gap-1">
+                <p className="font-bold text-slate-800">{stat.label}</p>
+                <p className="text-xs text-slate-400">{stat.sublabel}</p>
+              </div>
+              <div className="flex flex-col mt-2">
+                <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                <p className="text-xs text-slate-500">निवेदक</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
+      )}
 
       {/* Table Section */}
-      <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center gap-6 justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input 
               type="text"
-              placeholder="Filter by name or NID..."
+              placeholder="Name, Citizen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-6 py-4 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-[#1a4a8c]/50 transition-all font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-12 pr-6 py-4 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-[#1a4a8c]/50 transition-all font-medium"
             />
           </div>
-          <button className="flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 transition-all">
-            <Filter size={14} />
-            Advanced
-          </button>
+          <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="md:w-48 bg-white border border-slate-200 rounded-lg px-4 py-4 text-xs font-medium text-slate-600 outline-none focus:border-[#1a4a8c]/50 transition-all cursor-pointer"
+            >
+              <option value="all">Status</option>
+              <option value="pending">Pending</option>
+              <option value="finalized">Finalized</option>
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="md:w-48 bg-white border border-slate-200 rounded-lg px-4 py-4 text-xs font-medium text-slate-600 outline-none focus:border-[#1a4a8c]/50 transition-all cursor-pointer"
+            >
+              <option value="all">All Category</option>
+              <option value="Category 1">Category 1</option>
+              <option value="Category 2">Category 2</option>
+              <option value="Category 3">Category 3</option>
+            </select>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
              <thead>
                 <tr className="bg-slate-50">
-                   <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Citizenship ID</th>
+                   <th className="px-8 py-5 w-24 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Photo</th>
+                   <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">NIN/Citizenship</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Applicant Name</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Record Status</th>
+                   <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Category</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Submission Date</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200 text-right">Actions</th>
                 </tr>
@@ -420,7 +494,7 @@ export const Dashboard: React.FC = () => {
              <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center">
+                    <td colSpan={7} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <div className="w-10 h-10 border-4 border-[#1a4a8c]/20 border-t-[#1a4a8c] rounded-full animate-spin" />
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Querying Identity Server...</p>
@@ -429,12 +503,21 @@ export const Dashboard: React.FC = () => {
                   </tr>
                 ) : filteredApps.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
+                    <td colSpan={7} className="px-8 py-20 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
                       Zero matching records found
                     </td>
                   </tr>
-                ) : filteredApps.map((app) => (
+                ) : filteredApps.map((app, idx) => (
                   <tr key={app.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-8 py-6 w-24">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        {app.photoUrl ? (
+                          <img src={app.photoUrl} alt="Applicant" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-5 h-5 text-slate-400" />
+                        )}
+                      </div>
+                    </td>
                     <td className="px-8 py-6">
                       <span className="text-[11px] font-mono font-bold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                         {app.citizenshipNo || 'N/A'}
@@ -442,10 +525,7 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#1a4a8c]/10 border border-[#1a4a8c]/10 flex items-center justify-center text-[#1a4a8c] font-bold uppercase">
-                          {app.firstNameEn?.[0]}{app.lastNameEn?.[0]}
-                        </div>
-                        <span className="text-sm font-bold text-slate-700 tracking-tight uppercase">{app.firstNameEn} {app.lastNameEn}</span>
+                        <span className="text-sm text-slate-700 tracking-tight uppercase">{app.firstNameEn} {app.lastNameEn}</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -457,32 +537,50 @@ export const Dashboard: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-8 py-6">
+                      <span className="text-[10px] font-medium text-slate-700 uppercase">
+                        {app.category || `Category ${(idx % 3) + 1}`}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
                       <span className="text-[10px] font-medium text-slate-400">
                         {app.updatedAt && typeof app.updatedAt.toDate === 'function' ? app.updatedAt.toDate().toLocaleDateString() : 'N/A'}
                       </span>
                     </td>
-                    <td className="px-8 py-6 text-right">
-                       <div className="flex items-center justify-end gap-3">
-                        <button 
-                          onClick={() => setSelectedApp(app)}
-                          className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 transition-all font-sans"
-                        >
-                            View
-                        </button>
-                        <button 
-                          onClick={() => startEditing(app.id, app)}
-                          className="px-4 py-2 bg-[#1a4a8c]/10 border border-[#1a4a8c]/20 rounded-lg text-[9px] font-black text-[#1a4a8c] uppercase tracking-widest hover:bg-[#1a4a8c] hover:text-white transition-all font-sans"
-                        >
-                            Edit
-                        </button>
-                        <button 
-                          onClick={() => setAppToDelete(app)}
-                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                          title="Delete Registration"
-                        >
-                            <X size={16} />
-                        </button>
-                       </div>
+                    <td className="px-8 py-6 text-right relative">
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setActiveMenu(activeMenu === app.id ? null : app.id);
+                         }}
+                         className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-xl transition-all text-slate-400 hover:text-slate-600"
+                       >
+                         <MoreHorizontal size={20} />
+                       </button>
+                       {activeMenu === app.id && (
+                         <div 
+                           className="absolute right-12 top-10 w-36 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-2 animate-in fade-in zoom-in-95 text-left"
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           <button 
+                             onClick={() => { setActiveMenu(null); setSelectedApp(app); }}
+                             className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                           >
+                              View
+                           </button>
+                           <button 
+                             onClick={() => { setActiveMenu(null); startEditing(app.id, app); }}
+                             className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                           >
+                              Edit
+                           </button>
+                           <button 
+                             onClick={() => { setActiveMenu(null); /* Placeholder for Status functionality */ }}
+                             className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                           >
+                              Status
+                           </button>
+                         </div>
+                       )}
                     </td>
                   </tr>
                 ))}

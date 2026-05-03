@@ -9,6 +9,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 import locationsData from '../../lib/locations.json';
+import { CameraCapture } from '../CameraCapture';
 
 const districts = Object.values(locationsData).flatMap(province => Object.keys(province)).sort();
 
@@ -100,42 +101,17 @@ const Section: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const Step0Applicant: React.FC = () => {
   const { formData, updateFormData, setStep, editingUid } = useFormContext();
   const [isChecking, setIsChecking] = React.useState(false);
-  const { register, handleSubmit, setValue, setError, formState: { errors } } = useForm<ApplicantData>({
+  const { register, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<ApplicantData>({
     resolver: zodResolver(applicantSchema),
     defaultValues: formData as ApplicantData
   });
 
   const onSubmit = async (data: ApplicantData) => {
     setIsChecking(true);
-    try {
-      const q = query(
-        collection(db, 'applications'),
-        where('citizenshipNo', '==', data.citizenshipNo)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const exists = querySnapshot.docs.some(doc => doc.id !== editingUid);
-      
-      if (exists) {
-        setError('citizenshipNo', {
-          type: 'manual',
-          message: 'Citizenship Number already registered / यो नागरिकता नं पहिले नै दर्ता भइसकेको छ'
-        });
-        setIsChecking(false);
-        return;
-      }
-
-      updateFormData(data);
-      setStep(1);
-    } catch (error) {
-      console.error("Uniqueness check error:", error);
-      setError('citizenshipNo', {
-        type: 'manual',
-        message: 'Error verifying uniqueness. Please try again.'
-      });
-    } finally {
-      setIsChecking(false);
-    }
+    // UI-Only mode: Bypass uniqueness check
+    updateFormData(data);
+    setStep(1);
+    setIsChecking(false);
   };
 
   const handleTransliteration = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: keyof ApplicantData, enNameField?: keyof ApplicantData) => {
@@ -156,54 +132,82 @@ export const Step0Applicant: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 px-4">
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest sm:pl-2">System Status: Basic Registry Parameters</span>
+        {/* <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest sm:pl-2">System Status: Basic Registry Parameters</span> */}
+        {/* <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest sm:pl-2">NIN Number</span> */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1 w-full max-w-xl">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">राष्ट्रिय परिचय पत्र नं</span>
+            <span className="text-xs font-bold text-slate-600">National ID Number</span>
+          </div>
+          <div className="flex flex-1 items-start sm:items-center gap-3">
+            <div className="flex-1">
+              <input 
+                type="text"
+                placeholder="NID Number"
+                {...register("nidNo")}
+                className={cn(
+                  "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-400 uppercase",
+                  errors.nidNo && "border-red-500/50 bg-red-50"
+                )}
+              />
+              {errors.nidNo && <span className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1 block">{errors.nidNo.message}</span>}
+            </div>
+            <button 
+              type="submit"
+              // disabled={isChecking}
+              className="bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white px-8 py-2.5 rounded-xl shadow-md shadow-[#1a4a8c]/20 font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shrink-0 h-[42px]"
+            >
+              Check
+            </button>
+          </div>
+        </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Process ID</span>
             <span className="bg-slate-50 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-mono tracking-widest border border-slate-200">9702686905585</span>
         </div>
       </div>
 
-      <GroupTitle title="Application Identification" />
+      <GroupTitle title="Main Applicant Data" />
       <Section>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-2">
           <InputField 
             labelNp="पहिलो नाम" 
-            labelEn="First Name" 
+            // labelEn="First Name" 
             name="firstNameNp" 
             register={register} 
             error={errors.firstNameNp} 
-            required 
+             
             placeholder="e.g. 'nepAl' for 'नेपाल'"
             onChange={(e) => handleTransliteration(e, 'firstNameNp', 'firstNameEn')}
           />
-          <InputField labelNp="First Name" labelEn="पहिलो नाम" name="firstNameEn" register={register} error={errors.firstNameEn} required />
+          <InputField labelNp="First Name" name="firstNameEn" register={register} error={errors.firstNameEn} />
           
           <InputField 
             labelNp="बीचको नाम" 
-            labelEn="Middle Name" 
+            // labelEn="Middle Name" 
             name="middleNameNp" 
             register={register} 
             error={errors.middleNameNp} 
             placeholder="e.g. 'prasAda' for 'प्रसाद'"
             onChange={(e) => handleTransliteration(e, 'middleNameNp', 'middleNameEn')}
           />
-          <InputField labelNp="Middle Name" labelEn="बीचको नाम" name="middleNameEn" register={register} error={errors.middleNameEn} />
+          <InputField labelNp="Middle Name" name="middleNameEn" register={register} error={errors.middleNameEn} />
           
           <InputField 
             labelNp="थर" 
-            labelEn="Last Name" 
+            // labelEn="Last Name" 
             name="lastNameNp" 
             register={register} 
             error={errors.lastNameNp} 
-            required 
             placeholder="e.g. 'sharma' for 'शर्मा''"
             onChange={(e) => handleTransliteration(e, 'lastNameNp', 'lastNameEn')}
           />
-          <InputField labelNp="Last Name" labelEn="थर" name="lastNameEn" register={register} error={errors.lastNameEn} required />
+          <InputField labelNp="Last Name" name="lastNameEn" register={register} error={errors.lastNameEn} />
           
-          <InputField labelNp="जन्म मिति" labelEn="Date of Birth" name="dobNp" type="date" register={register} error={errors.dobNp} />
-          <InputField labelNp="Date of Birth" labelEn="जन्म मिति" name="dobEn" type="date" register={register} error={errors.dobEn} />
+          <InputField labelNp="जन्म मिति" name="dobNp" type="date" register={register} error={errors.dobNp} />
+          <InputField labelNp="Date of Birth" name="dobEn" type="date" register={register} error={errors.dobEn} />
           
           <InputField 
             labelNp="नागरिकता नं" 
@@ -240,11 +244,11 @@ export const Step0Applicant: React.FC = () => {
           </InputField>
  
           <InputField labelNp="जारी मिति" labelEn="Issued Date" name="issuedDate" register={register} error={errors.issuedDate} type="date" />
-          <InputField labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="National ID Number" name="nidNo" register={register} error={errors.nidNo} placeholder="NID Number" />
+          {/* <InputField labelNp="राष्ट्रिय परिचय पत्र नं" labelEn="National ID Number" name="nidNo" register={register} error={errors.nidNo} placeholder="NID Number" /> */}
         </div>
       </Section>
  
-      <GroupTitle title="Registry Metadata" />
+      <GroupTitle title="Additional Information" />
       <Section>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-2">
           <InputField labelNp="लिंग" labelEn="Gender" name="gender" register={register} error={errors.gender} as="select">
@@ -279,8 +283,8 @@ export const Step0Applicant: React.FC = () => {
             <option value="other">OTHER</option>
           </InputField>
  
-          <InputField labelNp="जाति" labelEn="Caste" name="caste" register={register} error={errors.caste} as="select">
-            <option value="">SELECT CASTE</option>
+          <InputField labelNp="जाति" labelEn="Cast" name="caste" register={register} error={errors.caste} as="select">
+            <option value="">SELECT CAST</option>
             <option value="brahmin">BRAHMIN</option>
             <option value="chhetri">CHHETRI</option>
             <option value="magar">MAGAR</option>
@@ -300,7 +304,7 @@ export const Step0Applicant: React.FC = () => {
             <option value="other">OTHER</option>
           </InputField>
 
-          <InputField labelNp="हालको होल्डिङ सेन्टर" labelEn="Current Holding Center" name="currentHoldingCenter" register={register} error={errors.currentHoldingCenter} placeholder="Enter Current Holding Center" />
+          {/* <InputField labelNp="हालको होल्डिङ सेन्टर" labelEn="Current Holding Center" name="currentHoldingCenter" register={register} error={errors.currentHoldingCenter} placeholder="Enter Current Holding Center" /> */}
         </div>
       </Section>
  

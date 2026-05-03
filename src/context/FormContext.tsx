@@ -11,8 +11,8 @@ interface FormContextType {
   setStep: (step: number) => void;
   user: User | null;
   loading: boolean;
-  view: 'dashboard' | 'form';
-  setView: (view: 'dashboard' | 'form') => void;
+  view: 'dashboard' | 'form' | 'list';
+  setView: (view: 'dashboard' | 'form' | 'list') => void;
   resetForm: () => void;
   startEditing: (uid: string, data: any) => void;
   saveData: () => Promise<void>;
@@ -26,7 +26,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [formData, setFormData] = useState<Partial<FormData>>({});
   const [step, setStep] = useState(0);
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'dashboard' | 'form'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'form' | 'list'>('dashboard');
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,18 +40,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else if (currentUser) {
         setView('form');
         setEditingUid(currentUser.uid);
-        // Load data from Firestore
-        const docRef = doc(db, 'applications', currentUser.uid);
-        try {
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setFormData(data as Partial<FormData>);
-            setStep(data.currentStep || 0);
-          }
-        } catch (error) {
-          console.error("Error loading data:", error);
-        }
+        // UI ONLY MODE: Bypass Firestore Loading
       }
       setLoading(false);
     });
@@ -61,7 +50,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resetForm = () => {
     setFormData({});
-    setStep(0);
+    setStep(-1);
     // Generate a fresh unique ID for NEW applications to prevent overwriting
     const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     setEditingUid(newAppId);
@@ -80,62 +69,23 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newData = { ...rest, ...data };
       const targetUid = editingUid || user?.uid;
       
-      // Async save to firestore if user exists
-      if (user && targetUid) {
-        const docRef = doc(db, 'applications', targetUid);
-        const { id: __, ...saveData } = newData;
-        setDoc(docRef, {
-          ...saveData,
-          userId: user.uid,
-          currentStep: step,
-          updatedAt: serverTimestamp()
-        }, { merge: true }).catch(err => {
-          handleFirestoreError(err, OperationType.WRITE, `applications/${targetUid}`);
-        });
-      }
+      // DB Save bypassed for UI-ONLY mode
       return newData;
     });
   };
 
   const handleSetStep = (newStep: number) => {
     setStep(newStep);
-    const targetUid = editingUid || user?.uid;
-    if (user && targetUid) {
-      const docRef = doc(db, 'applications', targetUid);
-      updateDoc(docRef, {
-        currentStep: newStep,
-        updatedAt: serverTimestamp()
-      }).catch(err => {
-        handleFirestoreError(err, OperationType.UPDATE, `applications/${targetUid}`);
-      });
-    }
+    // const targetUid = editingUid || user?.uid;
+    // DB Save bypassed for UI-ONLY mode
   };
 
   const saveData = async () => {
-    const targetUid = editingUid || user?.uid;
-    if (!user || !targetUid) return;
-    
-    const docRef = doc(db, 'applications', targetUid);
-    const { id: _, ...rest } = formData;
-    try {
-      await setDoc(docRef, {
-        ...rest,
-        userId: user.uid,
-        currentStep: step,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `applications/${targetUid}`);
-    }
+    // DB Save bypassed for UI-ONLY mode
   };
 
   const deleteApplication = async (uid: string) => {
-    const docRef = doc(db, 'applications', uid);
-    try {
-      await deleteDoc(docRef);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `applications/${uid}`);
-    }
+    // DB Save bypassed for UI-ONLY mode
   };
 
   return (

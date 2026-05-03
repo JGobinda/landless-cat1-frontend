@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const applicantSchema = z.object({
+  applicantPhoto: z.string().optional(),
   firstNameNp: z.string().min(1, 'नेपालीमा पहिलो नाम अनिवार्य छ'),
   firstNameEn: z.string().min(1, 'First Name is required'),
   middleNameNp: z.string().optional(),
@@ -47,6 +48,8 @@ export const contactSchema = z.object({
 export const familySchema = z.object({
   fatherFirstNameNp: z.string().optional(),
   fatherFirstNameEn: z.string().optional(),
+  fatherMiddleNameNp: z.string().optional(),
+  fatherMiddleNameEn: z.string().optional(),
   fatherLastNameNp: z.string().optional(),
   fatherLastNameEn: z.string().optional(),
   fatherCitizenshipNo: z.string().optional(),
@@ -64,9 +67,12 @@ export const familySchema = z.object({
   
   motherFirstNameNp: z.string().optional(),
   motherFirstNameEn: z.string().optional(),
+  motherMiddleNameNp: z.string().optional(),
+  motherMiddleNameEn: z.string().optional(),
   motherLastNameNp: z.string().optional(),
   motherLastNameEn: z.string().optional(),
   motherCitizenshipNo: z.string().optional(),
+  motherNidNo: z.string().optional(),
   motherNationality: z.string().optional(),
   motherPermState: z.string().optional(),
   motherPermDistrict: z.string().optional(),
@@ -80,9 +86,12 @@ export const familySchema = z.object({
   
   grandFatherFirstNameNp: z.string().optional(),
   grandFatherFirstNameEn: z.string().optional(),
+  grandFatherMiddleNameNp: z.string().optional(),
+  grandFatherMiddleNameEn: z.string().optional(),
   grandFatherLastNameNp: z.string().optional(),
   grandFatherLastNameEn: z.string().optional(),
   grandFatherCitizenshipNo: z.string().optional(),
+  grandFatherNidNo: z.string().optional(),
   grandFatherNationality: z.string().optional(),
   grandFatherPermState: z.string().optional(),
   grandFatherPermDistrict: z.string().optional(),
@@ -93,10 +102,102 @@ export const familySchema = z.object({
   grandFatherTempDistrict: z.string().optional(),
   grandFatherTempLocalLevel: z.string().optional(),
   grandFatherTempWard: z.string().optional(),
+  
+  grandMotherFirstNameNp: z.string().optional(),
+  grandMotherFirstNameEn: z.string().optional(),
+  grandMotherMiddleNameNp: z.string().optional(),
+  grandMotherMiddleNameEn: z.string().optional(),
+  grandMotherLastNameNp: z.string().optional(),
+  grandMotherLastNameEn: z.string().optional(),
+  grandMotherCitizenshipNo: z.string().optional(),
+  grandMotherNidNo: z.string().optional(),
+  grandMotherNationality: z.string().optional(),
+  grandMotherPermState: z.string().optional(),
+  grandMotherPermDistrict: z.string().optional(),
+  grandMotherPermLocalLevel: z.string().optional(),
+  grandMotherPermWard: z.string().optional(),
+  grandMotherMirrorAddress: z.boolean().optional(),
+  grandMotherTempState: z.string().optional(),
+  grandMotherTempDistrict: z.string().optional(),
+  grandMotherTempLocalLevel: z.string().optional(),
+  grandMotherTempWard: z.string().optional(),
+  
+  spouseFirstNameNp: z.string().optional(),
+  spouseFirstNameEn: z.string().optional(),
+  spouseMiddleNameNp: z.string().optional(),
+  spouseMiddleNameEn: z.string().optional(),
+  spouseLastNameNp: z.string().optional(),
+  spouseLastNameEn: z.string().optional(),
+  spouseCitizenshipNo: z.string().optional(),
+  spouseNidNo: z.string().optional(),
+  spouseNationality: z.string().optional(),
+  spousePermState: z.string().optional(),
+  spousePermDistrict: z.string().optional(),
+  spousePermLocalLevel: z.string().optional(),
+  spousePermWard: z.string().optional(),
+  spouseMirrorAddress: z.boolean().optional(),
+  spouseTempState: z.string().optional(),
+  spouseTempDistrict: z.string().optional(),
+  spouseTempLocalLevel: z.string().optional(),
+  spouseTempWard: z.string().optional(),
+
+  familyMembers: z.array(z.object({
+    name: z.string().optional(),
+    relation: z.string().optional(),
+    age: z.string().optional(),
+    nin: z.string().optional(),
+    generation: z.string().optional(),
+    landElsewhere: z.string().optional()
+  })).optional()
+});
+
+export const landHousingSchema = z.object({
+  hasLandNepal: z.string().optional(),
+  landNoOwnershipReason: z.string().optional(),
+  landOwnerName: z.string().optional(),
+  landRelationToHead: z.string().optional(),
+  landLocation: z.string().optional(),
+  landArea: z.string().optional(),
+  isLandUsable: z.string().optional(),
+  landUsableCondition: z.string().optional(),
+  landSolutionOption: z.string().optional(),
+  
+  hasHouse: z.string().optional(),
+  houseType: z.string().optional(),
+  housingSolutionOption: z.string().optional(),
+  requiredHousingForm: z.string().optional(),
+});
+
+export const economicHealthSchema = z.object({
+  mainIncomeSource: z.string().optional(),
+  monthlyIncome: z.string().optional(),
+  hasSavings: z.string().optional(),
+  savingsDetails: z.string().optional(),
+  empowermentOption: z.string().optional(),
+  
+  hasChronicIllness: z.string().optional(),
+  chronicIllnessDetails: z.array(z.object({
+    who: z.string().optional(),
+    disease: z.string().optional(),
+    condition: z.string().optional()
+  })).optional(),
+
+  pregnantCount: z.string().optional(),
+  nursingCount: z.string().optional(),
+  childrenUnder5Boy: z.string().optional(),
+  childrenUnder5Girl: z.string().optional(),
+  children5to16Boy: z.string().optional(),
+  children5to16Girl: z.string().optional(),
+  seniors65PlusMale: z.string().optional(),
+  seniors65PlusFemale: z.string().optional(),
+  disabilityMale: z.string().optional(),
+  disabilityFemale: z.string().optional(),
 });
 
 export type ApplicantData = z.infer<typeof applicantSchema>;
 export type ContactData = z.infer<typeof contactSchema>;
 export type FamilyData = z.infer<typeof familySchema>;
+export type LandHousingData = z.infer<typeof landHousingSchema>;
+export type EconomicHealthData = z.infer<typeof economicHealthSchema>;
 
-export type FormData = ApplicantData & ContactData & FamilyData;
+export type FormData = ApplicantData & ContactData & FamilyData & LandHousingData & EconomicHealthData;

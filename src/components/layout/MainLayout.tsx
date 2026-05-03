@@ -8,11 +8,13 @@ const steps = [
   'Applicant Data',
   'Contact Details',
   'Family Details',
+  'Land & Housing',
+  'Economic & Health',
   'Preview',
 ];
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { step, user, view, setView } = useFormContext();
+  const { step, setStep, user, view, setView, resetForm } = useFormContext();
 
   return (
     <div className="min-h-screen font-sans bg-slate-50">
@@ -67,25 +69,50 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         </div>
       </div>
 
+      {/* Navigation Bar */}
+      <div className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 hidden md:block">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center gap-1">
+          <button 
+            onClick={() => setView('dashboard')} 
+            className={cn("px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2", view === 'dashboard' ? "border-[#1a4a8c] text-[#1a4a8c]" : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50")}
+          >
+            Dashboard
+          </button>
+          <button 
+            onClick={() => { resetForm(); setView('form'); }} 
+            className={cn("px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2", view === 'form' ? "border-[#1a4a8c] text-[#1a4a8c]" : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50")}
+          >
+            New Applicant
+          </button>
+          <button 
+            onClick={() => setView('list')}
+            className={cn("px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2", view === 'list' ? "border-[#1a4a8c] text-[#1a4a8c]" : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50")}
+          >
+            Applicants
+          </button>
+        </div>
+      </div>
+
       {/* Navigation Tabs - Light Mode Stepper */}
-      {view === 'form' && (
+      {view === 'form' && step >= 0 && (
         <div className="sticky top-0 z-20 pt-4 bg-slate-50/80 backdrop-blur-md px-4">
           <div className="max-w-[1400px] mx-auto flex items-center gap-1 bg-white border border-slate-200 rounded-2xl p-1 shadow-sm overflow-x-auto no-scrollbar">
             {steps.map((label, idx) => (
-              <div
+              <button
                 key={label}
+                onClick={() => setStep(idx)}
                 className={cn(
-                  "flex-1 min-w-[80px] sm:min-w-0 text-center py-3 md:py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-default",
+                  "flex-1 min-w-[80px] sm:min-w-0 text-center py-3 md:py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
                   step === idx 
                     ? "bg-[#1a4a8c] text-white shadow-md" 
                     : idx < step 
-                      ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-                      : "text-slate-400"
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100" 
+                      : "text-slate-400 hover:bg-slate-100"
                 )}
               >
                 <span className="hidden sm:inline">{label}</span>
                 <span className="sm:hidden">{idx + 1}</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>

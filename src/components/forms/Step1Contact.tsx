@@ -175,7 +175,7 @@ export const Step1Contact: React.FC = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in slide-in-from-right-8 duration-700 px-4">
        <div className="relative flex items-center gap-4 my-12">
         <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Section: Permanent Geolocation</span>
+        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Applicant Permanent Address</span>
         <div className="flex-1 h-px bg-slate-200" />
       </div>
 
@@ -229,7 +229,9 @@ export const Step1Contact: React.FC = () => {
            />
            <FormField labelNp="वडा नं." labelEn="Ward" name="permWard" register={register} error={errors.permWard} as="select" options={wardOptions} />
            
-           <FormField labelNp="गाउँ / टोल" labelEn="Village/Tole" name="permVillage" register={register} error={errors.permVillage} />
+           <FormField labelNp="गाउँ / टोल" name="permVillage" register={register} error={errors.permVillage} />
+           <FormField labelEn="Village/Tole" name="permVillage" register={register} error={errors.permVillage} />
+
         </div>
       </div>
 
@@ -240,13 +242,13 @@ export const Step1Contact: React.FC = () => {
         )}>
           {copyToTemp && <div className="w-2 h-2 bg-white rounded-sm" />}
         </div>
-        <span className="text-xs font-black text-[#1a4a8c] uppercase tracking-widest">Mirror Permanent Address to Temporary</span>
+        <span className="text-xs font-black text-[#1a4a8c] uppercase tracking-widest">Copy Permanent Address to Temporary</span>
         <input type="hidden" {...register('copyToTemp')} />
       </div>
 
       <div className="relative flex items-center gap-4 my-12">
         <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Section: Temporary Residency</span>
+        <span className="text-[11px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] px-8 bg-slate-50 py-2 rounded-full border border-slate-200">Applicants Temporary Address</span>
         <div className="flex-1 h-px bg-slate-200" />
       </div>
 
@@ -295,7 +297,9 @@ export const Step1Contact: React.FC = () => {
              }}
            />
            <FormField labelNp="वडा नं." labelEn="Ward" name="tempWard" register={register} as="select" options={tempWardOptions} disabled={copyToTemp} />
-           <FormField labelNp="गाउँ / टोल" labelEn="Village/Tole" name="tempVillage" register={register} disabled={copyToTemp} />
+           <FormField labelNp="गाउँ / टोल" name="tempVillage" register={register} disabled={copyToTemp} />
+           <FormField labelEn="Village/Tole" name="tempVillage" register={register} disabled={copyToTemp} />
+
         </div>
       </div>
 

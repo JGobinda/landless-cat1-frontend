@@ -6,7 +6,10 @@ import { Dashboard } from './components/dashboard/Dashboard';
 import { Step0Applicant } from './components/forms/Step0Applicant';
 import { Step1Contact } from './components/forms/Step1Contact';
 import { Step2Family } from './components/forms/Step2Family';
+import { Step3LandHousing } from './components/forms/Step3LandHousing';
+import { Step4EconomicHealth } from './components/forms/Step4EconomicHealth';
 import { Step4Review } from './components/forms/Step4Review';
+import { CategorySelection } from './components/forms/CategorySelection';
 
 const FormStepper = () => {
   const { step, user, loading, view } = useFormContext();
@@ -23,7 +26,7 @@ const FormStepper = () => {
     return <Login />;
   }
 
-  if (view === 'dashboard') {
+  if (view === 'dashboard' || view === 'list') {
     return (
       <MainLayout>
         <Dashboard />
@@ -33,11 +36,14 @@ const FormStepper = () => {
 
   const renderStep = () => {
     switch (step) {
+      case -1: return <CategorySelection />;
       case 0: return <Step0Applicant />;
       case 1: return <Step1Contact />;
       case 2: return <Step2Family />;
-      case 3: return <Step4Review />;
-      default: return <Step0Applicant />;
+      case 3: return <Step3LandHousing />;
+      case 4: return <Step4EconomicHealth />;
+      case 5: return <Step4Review />;
+      default: return <CategorySelection />;
     }
   };
 
