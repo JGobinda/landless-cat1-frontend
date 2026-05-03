@@ -1,10 +1,10 @@
 import React from 'react';
 import { useFormContext } from '../../context/FormContext';
-import { FileCheck, Download, CheckCircle, ArrowRight } from 'lucide-react';
+import { FileCheck, Download, CheckCircle, ArrowRight, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Step4Review: React.FC = () => {
-  const { formData, setStep, saveData } = useFormContext();
+  const { formData, setStep, saveData, resetForm, setView } = useFormContext();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -20,7 +20,7 @@ export const Step4Review: React.FC = () => {
     }
   };
 
-  if (isSubmitted) {
+   if (isSubmitted) {
     return (
       <div className="max-w-[700px] mx-auto text-center py-20 px-6">
          <motion.div 
@@ -36,14 +36,18 @@ export const Step4Review: React.FC = () => {
             The applicant record is now active in the system.
          </p>
          
-         <div className="flex justify-center">
+         <div className="flex flex-col sm:flex-row justify-center gap-6">
               <button 
-                onClick={() => window.location.reload()}
-                className="bg-[#1a4a8c] text-white px-12 py-8 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-6 hover:bg-[#1a4a8c]/90 transition-all shadow-2xl shadow-blue-900/30 group"
+                onClick={() => { resetForm(); setView('dashboard'); }}
+                className="bg-slate-100 text-slate-600 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-slate-200 transition-all"
               >
-                <div className="bg-white/10 p-2 rounded-lg">
-                  <FileCheck size={20} />
-                </div>
+                Return to Dashboard
+              </button>
+              <button 
+                onClick={() => { resetForm(); setStep(0); setView('form'); }}
+                className="bg-[#1a4a8c] text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-[#1a4a8c]/90 transition-all shadow-xl shadow-blue-900/20 group"
+              >
+                <Plus size={18} />
                 <span>Start New Registry</span>
               </button>
            </div>

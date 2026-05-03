@@ -60,7 +60,9 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetForm = () => {
     setFormData({});
     setStep(0);
-    setEditingUid(user?.uid || null);
+    // Generate a fresh unique ID for NEW applications to prevent overwriting
+    const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    setEditingUid(newAppId);
   };
 
   const startEditing = (uid: string, data: any) => {
