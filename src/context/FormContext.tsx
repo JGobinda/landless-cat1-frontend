@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { FormData } from '../lib/schema';
-import { auth, db, OperationType, handleFirestoreError } from '../lib/firebase';
-import { onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { auth } from '../lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 interface FormContextType {
   formData: Partial<FormData>;
@@ -30,7 +29,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Auth Listener
+  // Auth Listener (Keeping for session identification)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -40,12 +39,12 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else if (currentUser) {
         setView('form');
         setEditingUid(currentUser.uid);
-        // Load data from Firestore
-        const docRef = doc(db, 'applications', currentUser.uid);
+        // Load data from custom API
         try {
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
+          const response = await fetch(`/api/applications?userId=${currentUser.uid}`);
+          const apps = await response.json();
+          if (apps && apps.length > 0) {
+            const data = apps[0];
             setFormData(data as Partial<FormData>);
             setStep(data.currentStep || 0);
           }
@@ -62,79 +61,68 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetForm = () => {
     setFormData({});
     setStep(0);
-    // Generate a fresh unique ID for NEW applications to prevent overwriting
-    const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-    setEditingUid(newAppId);
+    // Use the custom API generated ID or just let Mongo handle it
+    setEditingUid(null);
   };
 
   const startEditing = (uid: string, data: any) => {
     setFormData(data);
-    setStep(0);
+    setStep(data.currentStep || 0);
     setEditingUid(uid);
     setView('form');
   };
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData((prev) => {
-      const { id: _, ...rest } = prev;
-      const newData = { ...rest, ...data };
-      const targetUid = editingUid || user?.uid;
-      
-      // Async save to firestore if user exists
-      if (user && targetUid) {
-        const docRef = doc(db, 'applications', targetUid);
-        const { id: __, ...saveData } = newData;
-        setDoc(docRef, {
-          ...saveData,
-          userId: user.uid,
-          currentStep: step,
-          updatedAt: serverTimestamp()
-        }, { merge: true }).catch(err => {
-          handleFirestoreError(err, OperationType.WRITE, `applications/${targetUid}`);
-        });
-      }
+      const newData = { ...prev, ...data };
       return newData;
     });
   };
 
   const handleSetStep = (newStep: number) => {
     setStep(newStep);
-    const targetUid = editingUid || user?.uid;
-    if (user && targetUid) {
-      const docRef = doc(db, 'applications', targetUid);
-      updateDoc(docRef, {
-        currentStep: newStep,
-        updatedAt: serverTimestamp()
-      }).catch(err => {
-        handleFirestoreError(err, OperationType.UPDATE, `applications/${targetUid}`);
-      });
-    }
   };
 
   const saveData = async () => {
-    const targetUid = editingUid || user?.uid;
-    if (!user || !targetUid) return;
+    const targetUid = editingUid;
+    if (!user) return;
     
-    const docRef = doc(db, 'applications', targetUid);
-    const { id: _, ...rest } = formData;
+    const payload = {
+      ...formData,
+      userId: user.uid,
+      currentStep: step,
+    };
+
     try {
-      await setDoc(docRef, {
-        ...rest,
-        userId: user.uid,
-        currentStep: step,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      if (targetUid) {
+        // Update existing
+        await fetch(`/api/applications/${targetUid}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // Create new
+        const response = await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await response.json();
+        setEditingUid(result.id);
+      }
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `applications/${targetUid}`);
+      console.error("Save failed:", error);
     }
   };
 
   const deleteApplication = async (uid: string) => {
-    const docRef = doc(db, 'applications', uid);
     try {
-      await deleteDoc(docRef);
+      await fetch(`/api/applications/${uid}`, {
+        method: 'DELETE',
+      });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `applications/${uid}`);
+      console.error("Delete failed:", error);
     }
   };
 

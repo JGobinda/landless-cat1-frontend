@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { db, OperationType, handleFirestoreError } from '../../lib/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useFormContext } from '../../context/FormContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Plus, Search, Calendar, FileText, ChevronRight, Filter, X, MapPin, Phone, Users, ShieldCheck } from 'lucide-react';
@@ -52,6 +50,12 @@ const DeleteConfirmationModal = ({ app, onClose, onConfirm, isDeleting }: { app:
       </motion.div>
     </motion.div>
   );
+};
+
+const formatDate = (date: any) => {
+  if (!date) return 'N/A';
+  const d = new Date(date);
+  return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 };
 
 const ApplicationModal = ({ app, onClose, startEditing, onDeleteClick }: { app: any, onClose: () => void, startEditing: (uid: string, data: any) => void, onDeleteClick: (app: any) => void }) => {
@@ -241,7 +245,7 @@ const ApplicationModal = ({ app, onClose, startEditing, onDeleteClick }: { app: 
                    <div className="grid grid-cols-2 gap-4">
                       <div>
                          <p className="text-[8px] font-bold text-slate-400 uppercase">Created On</p>
-                         <p className="text-[10px] text-slate-600">{app.updatedAt && typeof app.updatedAt.toDate === 'function' ? app.updatedAt.toDate().toLocaleDateString() : 'SYSTEM'}</p>
+                         <p className="text-[10px] text-slate-600">{formatDate(app.updatedAt)}</p>
                       </div>
                       <div>
                          <p className="text-[8px] font-bold text-slate-400 uppercase">Security Level</p>
@@ -287,6 +291,19 @@ export const Dashboard: React.FC = () => {
   const [appToDelete, setAppToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const fetchApps = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/applications');
+      const data = await response.json();
+      setApplications(data);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!appToDelete) return;
     setIsDeleting(true);
@@ -296,6 +313,8 @@ export const Dashboard: React.FC = () => {
       if (selectedApp?.id === appToDelete.id) {
         setSelectedApp(null);
       }
+      // Refresh list
+      fetchApps();
     } catch (error) {
       console.error("Delete failed:", error);
     } finally {
@@ -304,19 +323,7 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const q = query(collection(db, 'applications'), orderBy('updatedAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setApplications(docs);
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'applications');
-    });
-
-    return () => unsubscribe();
+    fetchApps();
   }, []);
 
   const filteredApps = applications.filter(app => 
@@ -458,7 +465,7 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="px-8 py-6">
                       <span className="text-[10px] font-medium text-slate-400">
-                        {app.updatedAt && typeof app.updatedAt.toDate === 'function' ? app.updatedAt.toDate().toLocaleDateString() : 'N/A'}
+                        {formatDate(app.updatedAt)}
                       </span>
                     </td>
                     <td className="px-8 py-6 text-right">

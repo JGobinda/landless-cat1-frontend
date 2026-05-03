@@ -5,9 +5,6 @@ import { applicantSchema, ApplicantData } from '../../lib/schema';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
 import Sanscript from 'sanscript';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-
 import locationsData from '../../lib/locations.json';
 
 const districts = Object.values(locationsData).flatMap(province => Object.keys(province)).sort();
@@ -108,13 +105,9 @@ export const Step0Applicant: React.FC = () => {
   const onSubmit = async (data: ApplicantData) => {
     setIsChecking(true);
     try {
-      const q = query(
-        collection(db, 'applications'),
-        where('citizenshipNo', '==', data.citizenshipNo)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const exists = querySnapshot.docs.some(doc => doc.id !== editingUid);
+      const response = await fetch(`/api/applications?citizenshipNo=${data.citizenshipNo}`);
+      const applications = await response.json();
+      const exists = applications.some((app: any) => app.id !== editingUid);
       
       if (exists) {
         setError('citizenshipNo', {
