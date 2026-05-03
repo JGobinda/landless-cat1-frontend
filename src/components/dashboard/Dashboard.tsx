@@ -6,7 +6,55 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User, Plus, Search, Calendar, FileText, ChevronRight, Filter, X, MapPin, Phone, Users, ShieldCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-const ApplicationModal = ({ app, onClose, startEditing }: { app: any, onClose: () => void, startEditing: (uid: string, data: any) => void }) => {
+const DeleteConfirmationModal = ({ app, onClose, onConfirm, isDeleting }: { app: any, onClose: () => void, onConfirm: () => void, isDeleting: boolean }) => {
+  if (!app) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-8 pb-4 text-center">
+          <div className="w-20 h-20 bg-red-50 rounded-3xl mx-auto flex items-center justify-center mb-6 border border-red-100">
+            <X className="text-red-500 w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">Delete Record?</h2>
+          <p className="text-slate-500 text-sm font-medium leading-relaxed">
+            You are about to permanently remove <span className="font-bold text-slate-800">{app.firstNameEn} {app.lastNameEn}</span>'s registration. This action cannot be reversed.
+          </p>
+        </div>
+        <div className="p-8 pt-4 flex flex-col gap-3">
+          <button 
+            disabled={isDeleting}
+            onClick={onConfirm}
+            className="w-full py-5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-red-900/20 disabled:opacity-50"
+          >
+            {isDeleting ? 'Erasing Record...' : 'Confirm Destruction'}
+          </button>
+          <button 
+            disabled={isDeleting}
+            onClick={onClose}
+            className="w-full py-5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95"
+          >
+            Cancel
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const ApplicationModal = ({ app, onClose, startEditing, onDeleteClick }: { app: any, onClose: () => void, startEditing: (uid: string, data: any) => void, onDeleteClick: (app: any) => void }) => {
   if (!app) return null;
 
   return (
@@ -206,14 +254,20 @@ const ApplicationModal = ({ app, onClose, startEditing }: { app: any, onClose: (
 
           <div className="pt-8 border-t border-slate-100 flex justify-end gap-4">
              <button 
+               onClick={() => onDeleteClick(app)}
+               className="px-6 md:px-10 py-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-200"
+             >
+                Delete Record
+             </button>
+             <button 
                onClick={onClose}
-               className="px-10 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+               className="px-6 md:px-10 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
              >
                 Close
              </button>
              <button 
                onClick={() => { onClose(); startEditing(app.id, app); }}
-               className="px-10 py-4 bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+               className="px-6 md:px-10 py-4 bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
              >
                 Modify Record
              </button>
@@ -225,11 +279,29 @@ const ApplicationModal = ({ app, onClose, startEditing }: { app: any, onClose: (
 };
 
 export const Dashboard: React.FC = () => {
-  const { setView, resetForm, startEditing } = useFormContext();
+  const { setView, resetForm, startEditing, deleteApplication } = useFormContext();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedApp, setSelectedApp] = useState<any>(null);
+  const [appToDelete, setAppToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!appToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteApplication(appToDelete.id);
+      setAppToDelete(null);
+      if (selectedApp?.id === appToDelete.id) {
+        setSelectedApp(null);
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'applications'), orderBy('updatedAt', 'desc'));
@@ -261,8 +333,24 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="max-w-[1400px] mx-auto p-4 md:p-10 space-y-8 md:space-y-12 animate-in fade-in duration-700">
       <AnimatePresence>
-        {selectedApp && <ApplicationModal app={selectedApp} onClose={() => setSelectedApp(null)} startEditing={startEditing} />}
+        {selectedApp && (
+          <ApplicationModal 
+            app={selectedApp} 
+            onClose={() => setSelectedApp(null)} 
+            startEditing={startEditing} 
+            onDeleteClick={(app) => setAppToDelete(app)}
+          />
+        )}
+        {appToDelete && (
+          <DeleteConfirmationModal 
+            app={appToDelete} 
+            onClose={() => setAppToDelete(null)} 
+            onConfirm={handleDelete}
+            isDeleting={isDeleting}
+          />
+        )}
       </AnimatePresence>
+
 
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 bg-[#1a4a8c]/5 p-6 md:p-0 rounded-3xl md:bg-transparent">
@@ -380,6 +468,13 @@ export const Dashboard: React.FC = () => {
                           className="px-4 py-2 bg-[#1a4a8c]/10 border border-[#1a4a8c]/20 rounded-lg text-[9px] font-black text-[#1a4a8c] uppercase tracking-widest hover:bg-[#1a4a8c] hover:text-white transition-all font-sans"
                         >
                             Edit
+                        </button>
+                        <button 
+                          onClick={() => setAppToDelete(app)}
+                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete Registration"
+                        >
+                            <X size={16} />
                         </button>
                        </div>
                     </td>

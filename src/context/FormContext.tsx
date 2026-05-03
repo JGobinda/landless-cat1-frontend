@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { FormData } from '../lib/schema';
 import { auth, db, OperationType, handleFirestoreError } from '../lib/firebase';
 import { onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 interface FormContextType {
   formData: Partial<FormData>;
@@ -17,6 +17,7 @@ interface FormContextType {
   startEditing: (uid: string, data: any) => void;
   saveData: () => Promise<void>;
   editingUid: string | null;
+  deleteApplication: (uid: string) => Promise<void>;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
@@ -128,6 +129,15 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const deleteApplication = async (uid: string) => {
+    const docRef = doc(db, 'applications', uid);
+    try {
+      await deleteDoc(docRef);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `applications/${uid}`);
+    }
+  };
+
   return (
     <FormContext.Provider value={{ 
       formData, 
@@ -141,7 +151,8 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       resetForm,
       startEditing,
       saveData,
-      editingUid
+      editingUid,
+      deleteApplication
     }}>
       {children}
     </FormContext.Provider>
