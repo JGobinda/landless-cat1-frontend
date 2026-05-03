@@ -16,7 +16,7 @@ export const Login: React.FC = () => {
     try {
       await loginWithEmail(email, password);
     } catch (err: any) {
-      setError('Invalid credentials. Please ensure test@gmail.com / test@123 is enabled in Firebase Console.');
+      setError('Invalid credentials.Please enter valid email and password.');
     } finally {
       setIsLoggingIn(false);
     }
