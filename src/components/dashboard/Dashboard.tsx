@@ -356,7 +356,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 bg-[#1a4a8c]/5 p-6 md:p-0 rounded-3xl md:bg-transparent">
         <div className="space-y-1 md:space-y-2">
           <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase">Registry Portal</h1>
-          {/* <p className="text-slate-500 text-sm font-medium tracking-tight">Passport Application Management & Civil Records</p> */}
+          <p className="text-slate-500 text-sm font-medium tracking-tight">Passport Application Management & Civil Records</p>
         </div>
         
         <button 
@@ -410,6 +410,7 @@ export const Dashboard: React.FC = () => {
           <table className="w-full text-left border-collapse">
              <thead>
                 <tr className="bg-slate-50">
+                   <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Citizenship ID</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Applicant Name</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Record Status</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Submission Date</th>
@@ -419,7 +420,7 @@ export const Dashboard: React.FC = () => {
              <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center">
+                    <td colSpan={5} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <div className="w-10 h-10 border-4 border-[#1a4a8c]/20 border-t-[#1a4a8c] rounded-full animate-spin" />
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Querying Identity Server...</p>
@@ -428,12 +429,17 @@ export const Dashboard: React.FC = () => {
                   </tr>
                 ) : filteredApps.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
+                    <td colSpan={5} className="px-8 py-20 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
                       Zero matching records found
                     </td>
                   </tr>
                 ) : filteredApps.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-8 py-6">
+                      <span className="text-[11px] font-mono font-bold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                        {app.citizenshipNo || 'N/A'}
+                      </span>
+                    </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[#1a4a8c]/10 border border-[#1a4a8c]/10 flex items-center justify-center text-[#1a4a8c] font-bold uppercase">
