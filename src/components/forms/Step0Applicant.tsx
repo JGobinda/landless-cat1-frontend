@@ -133,39 +133,67 @@ export const Step0Applicant: React.FC = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 px-4">
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        {/* <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest sm:pl-2">System Status: Basic Registry Parameters</span> */}
-        {/* <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest sm:pl-2">NIN Number</span> */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1 w-full max-w-xl">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">राष्ट्रिय परिचय पत्र नं</span>
-            <span className="text-xs font-bold text-slate-600">National ID Number</span>
-          </div>
-          <div className="flex flex-1 items-start sm:items-center gap-3">
-            <div className="flex-1">
+      <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+        {/* Top Row: NID and Process ID */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 pb-6 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1">
+            <div className="flex flex-col min-w-[170px]">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">राष्ट्रिय परिचय पत्र नं</span>
+              <span className="text-xs font-bold text-slate-800">National ID Number</span>
+            </div>
+            <div className="flex flex-1 items-center gap-3">
               <input 
                 type="text"
-                placeholder="NID Number"
+                placeholder="ENTER NID NUMBER"
                 {...register("nidNo")}
                 className={cn(
-                  "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-400 uppercase",
+                  "w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300 uppercase font-mono tracking-wider",
                   errors.nidNo && "border-red-500/50 bg-red-50"
                 )}
               />
-              {errors.nidNo && <span className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1 block">{errors.nidNo.message}</span>}
+              <button 
+                type="submit"
+                className="bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white px-8 py-3 rounded-xl shadow-lg shadow-[#1a4a8c]/20 font-black text-[11px] uppercase tracking-[0.25em] transition-all active:scale-95 shrink-0 h-[46px]"
+              >
+                CHECK
+              </button>
             </div>
-            <button 
-              type="submit"
-              // disabled={isChecking}
-              className="bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white px-8 py-2.5 rounded-xl shadow-md shadow-[#1a4a8c]/20 font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shrink-0 h-[42px]"
-            >
-              Check
-            </button>
+          </div>
+
+          <div className="flex items-center gap-4 bg-slate-50 px-6 py-2.5 rounded-2xl border border-slate-100 self-start lg:self-center">
+             <div className="flex flex-col">
+                <span className="text-[8px] text-[#1a4a8c] font-black uppercase tracking-widest whitespace-nowrap">प्रक्रिया आईडी</span>
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest whitespace-nowrap">Process ID</span>
+             </div>
+             <span className="text-sm font-black text-[#1a4a8c] font-mono tracking-[0.15em]">9702686905585</span>
           </div>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Process ID</span>
-            <span className="bg-slate-50 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-mono tracking-widest border border-slate-200">9702686905585</span>
+
+        {/* Bottom Row: Rescue and Holding Center Details */}
+        <div className="flex flex-col lg:flex-row items-center gap-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1 w-full">
+            <div className="flex flex-col min-w-[170px]">
+               <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">उद्धार स्थान</span>
+               <span className="text-xs font-bold text-slate-800">Rescue Location</span>
+            </div>
+            <input 
+               {...register("rescueLocation")}
+               placeholder="ENTER LOCATION"
+               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300 uppercase"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1 w-full">
+            <div className="flex flex-col min-w-[170px]">
+               <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">होल्डिङ सेन्टर</span>
+               <span className="text-xs font-bold text-slate-800">Holding Center</span>
+            </div>
+            <input 
+               {...register("currentHoldingCenter")}
+               placeholder="ENTER CENTER NAME"
+               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-300 uppercase"
+            />
+          </div>
         </div>
       </div>
 

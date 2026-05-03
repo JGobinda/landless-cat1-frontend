@@ -107,7 +107,7 @@ export const Step4EconomicHealth: React.FC = () => {
 
   const onSubmit = (data: EconomicHealthData) => {
     updateFormData(data);
-    setStep(5); // Proceed to Preview
+    setStep(5); // Proceed to Biometrics
   };
 
   return (
@@ -248,7 +248,7 @@ export const Step4EconomicHealth: React.FC = () => {
           type="submit"
           className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95"
         >
-          Proceed to Preview
+          Proceed to Biometric Photo
         </button>
       </div>
     </form>

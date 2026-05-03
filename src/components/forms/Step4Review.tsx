@@ -86,6 +86,8 @@ export const Step4Review: React.FC = () => {
                <SummaryItem label="Gender" value={formData.gender} />
                <SummaryItem label="Citizenship No" value={formData.citizenshipNo} />
                <SummaryItem label="NID Number" value={formData.nidNo} />
+               <SummaryItem label="Rescue Location" value={formData.rescueLocation} />
+               <SummaryItem label="Holding Center" value={formData.currentHoldingCenter} />
                <SummaryItem label="Business" value={formData.business} />
                <SummaryItem label="Caste" value={formData.caste} />
                <SummaryItem label="Religion" value={formData.religion} />
@@ -221,10 +223,10 @@ export const Step4Review: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pb-12">
            <button 
-              onClick={() => setStep(3)}
+              onClick={() => setStep(5)}
               className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] hover:text-[#1a4a8c] transition-colors"
            >
-              Modify Parameters
+              Back to Biometrics
            </button>
           <button 
              onClick={handleSubmit}

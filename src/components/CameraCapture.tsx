@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Camera, X, Check, RotateCcw } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface CameraCaptureProps {
   onCapture: (image: string) => void;
@@ -33,30 +34,45 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, buttonL
 
   return (
     <>
-      <div className="flex flex-col items-center gap-4">
-        {currentImage && !isOpen && (
-          <div className="relative group">
-            <img 
-              src={currentImage} 
-              alt="Applicant" 
-              className="w-32 h-32 md:w-40 md:h-40 rounded-3xl object-cover border-4 border-white shadow-xl shadow-blue-900/10 transition-transform group-hover:scale-105" 
-            />
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center">
-               <Camera size={24} className="text-white" />
+      <div className="flex flex-col items-center justify-center h-full">
+        {currentImage ? (
+          <div className="relative group animate-in zoom-in duration-300">
+            <div 
+              onClick={() => setIsOpen(true)}
+              className="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden border-4 border-white shadow-xl shadow-blue-900/10 cursor-pointer transition-transform hover:scale-105"
+            >
+              <img 
+                src={currentImage} 
+                alt="Applicant" 
+                className="w-full h-full object-cover" 
+              />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <Camera size={24} className="text-white" />
+              </div>
             </div>
+            <button
+               type="button"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 onCapture('');
+               }}
+               className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg border-2 border-white transition-all active:scale-90"
+            >
+               <X size={14} />
+            </button>
           </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setImage(null);
+              setIsOpen(true);
+            }}
+            className="w-20 h-20 bg-[#1a4a8c] text-white rounded-full flex items-center justify-center shadow-xl shadow-blue-900/20 hover:bg-[#1a4a8c]/90 transition-all active:scale-95"
+          >
+            <Camera size={24} />
+          </button>
         )}
-        <button
-          type="button"
-          onClick={() => {
-            setImage(null);
-            setIsOpen(true);
-          }}
-          className="flex items-center justify-center gap-4 px-10 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 active:scale-95 transition-all shadow-xl shadow-blue-900/20"
-        >
-          <Camera size={18} />
-          {buttonLabel}
-        </button>
       </div>
 
       {isOpen && (
@@ -68,7 +84,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, buttonL
           >
             <div className="w-full flex items-center justify-between mb-8">
               <div className="flex flex-col">
-                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Image Acquisition</h3>
+                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Image</h3>
                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Biometric applicant verification</span>
               </div>
               <button
@@ -90,7 +106,10 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, buttonL
                   disablePictureInPicture={true}
                   forceScreenshotSourceSize={false}
                   imageSmoothing={true}
-                  mirrored={false}
+                  mirrored={true}
+                  onUserMedia={() => {}}
+                  onUserMediaError={() => {}}
+                  screenshotQuality={0.92}
                 />
               ) : (
                 <img src={image} alt="Captured" className="w-full h-full object-cover" />

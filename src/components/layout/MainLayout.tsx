@@ -10,6 +10,7 @@ const steps = [
   'Family Details',
   'Land & Housing',
   'Economic & Health',
+  'Biometrics',
   'Preview',
 ];
 
@@ -22,7 +23,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       <div className="bg-[#1a4a8c] text-white border-b-4 border-[#dc2626]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 md:gap-6">
-            <div 
+            {/* <div 
               className={cn(
                 "flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all group",
                 view === 'dashboard' ? "bg-white/10 border border-white/20" : "hover:bg-white/5"
@@ -33,10 +34,10 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                 <LayoutDashboard size={18} />
               </div>
               <span className="font-bold text-sm tracking-tight hidden sm:block">Portal Home</span>
-            </div>
+            </div> */}
             <div className="flex flex-col border-l border-white/20 pl-4 md:pl-6">
                 <img src="https://citizenportal.donidcr.gov.np/_next/image?url=%2Femblem_of_Nepal.png&w=256&q=75" alt="Logo" className="w-8 h-8 mb-2" />
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#e2e8f0]/80">नेपl सरकार | Government of Nepal</span>
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#e2e8f0]/80">नेपाल सरकार | Government of Nepal</span>
               <span className="text-xs md:text-sm font-black tracking-tight uppercase">Digital registry for landless and informal settlements</span>
             </div>
           </div>

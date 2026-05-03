@@ -24,6 +24,7 @@ export const applicantSchema = z.object({
   caste: z.string().optional(),
   religion: z.string().optional(),
   nidNo: z.string().optional(),
+  rescueLocation: z.string().optional(),
   currentHoldingCenter: z.string().optional(),
 });
 

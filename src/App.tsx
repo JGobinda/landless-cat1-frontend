@@ -9,6 +9,7 @@ import { Step2Family } from './components/forms/Step2Family';
 import { Step3LandHousing } from './components/forms/Step3LandHousing';
 import { Step4EconomicHealth } from './components/forms/Step4EconomicHealth';
 import { Step4Review } from './components/forms/Step4Review';
+import { Step5Biometric } from './components/forms/Step5Biometric';
 import { CategorySelection } from './components/forms/CategorySelection';
 
 const FormStepper = () => {
@@ -42,7 +43,8 @@ const FormStepper = () => {
       case 2: return <Step2Family />;
       case 3: return <Step3LandHousing />;
       case 4: return <Step4EconomicHealth />;
-      case 5: return <Step4Review />;
+      case 5: return <Step5Biometric />;
+      case 6: return <Step4Review />;
       default: return <CategorySelection />;
     }
   };
