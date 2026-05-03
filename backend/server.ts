@@ -19,6 +19,8 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 }
 }));
 
+let isDbConnected = false;
+
 // MongoDB Connection
 let MONGODB_URI = process.env.MONGODB_URI;
 
@@ -26,13 +28,34 @@ if (MONGODB_URI && MONGODB_URI.includes('=')) {
   MONGODB_URI = MONGODB_URI.split('=')[1];
 }
 
+const isLocalhost = MONGODB_URI?.includes('localhost') || MONGODB_URI?.includes('127.0.0.1');
+
 if (!MONGODB_URI || (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://'))) {
-  console.warn('⚠️ No valid MONGODB_URI found.');
+  console.warn('⚠️ No valid MONGODB_URI found in environment variables.');
+  console.warn('Please provide a remote MongoDB connection string (e.g. MongoDB Atlas) in the Settings menu.');
+} else if (isLocalhost) {
+  console.warn('❌ Localhost MongoDB detected. This will not work in the cloud environment.');
+  console.warn('Please use a remote MongoDB Atlas URI.');
 } else {
   mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => console.error('❌ MongoDB connection error:', err.message));
+    .then(() => {
+      console.log('✅ Connected to MongoDB');
+      isDbConnected = true;
+    })
+    .catch(err => {
+      console.error('❌ MongoDB connection error:', err.message);
+      isDbConnected = false;
+    });
 }
+
+// API Routes - Health Check & DB Status
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    database: isDbConnected ? 'connected' : 'disconnected',
+    message: isDbConnected ? 'System Operational' : 'Database Connection Required'
+  });
+});
 
 // Auth Middleware
 const requireAuth = (req: any, res: any, next: any) => {
