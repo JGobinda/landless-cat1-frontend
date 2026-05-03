@@ -299,6 +299,8 @@ export const Step0Applicant: React.FC = () => {
             <option value="kirat">KIRAT</option>
             <option value="other">OTHER</option>
           </InputField>
+
+          <InputField labelNp="हालको होल्डिङ सेन्टर" labelEn="Current Holding Center" name="currentHoldingCenter" register={register} error={errors.currentHoldingCenter} placeholder="Enter Current Holding Center" />
         </div>
       </Section>
  

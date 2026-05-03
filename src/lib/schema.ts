@@ -23,6 +23,7 @@ export const applicantSchema = z.object({
   caste: z.string().optional(),
   religion: z.string().optional(),
   nidNo: z.string().optional(),
+  currentHoldingCenter: z.string().optional(),
 });
 
 export const contactSchema = z.object({

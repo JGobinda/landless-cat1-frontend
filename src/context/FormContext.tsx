@@ -85,7 +85,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { id: __, ...saveData } = newData;
         setDoc(docRef, {
           ...saveData,
-          userId: targetUid,
+          userId: user.uid,
           currentStep: step,
           updatedAt: serverTimestamp()
         }, { merge: true }).catch(err => {
@@ -119,7 +119,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await setDoc(docRef, {
         ...rest,
-        userId: targetUid,
+        userId: user.uid,
         currentStep: step,
         updatedAt: serverTimestamp()
       }, { merge: true });
