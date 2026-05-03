@@ -4,6 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { applicantSchema, ApplicantData } from '../../lib/schema';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
+import Sanscript from 'sanscript';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 import locationsData from '../../lib/locations.json';
 
@@ -19,6 +22,8 @@ interface InputFieldProps {
   type?: string;
   as?: 'input' | 'select';
   children?: React.ReactNode;
+  placeholder?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }
 
 const InputField: React.FC<InputFieldProps> = ({ 
@@ -31,39 +36,52 @@ const InputField: React.FC<InputFieldProps> = ({
   type = 'text',
   as = 'input',
   children,
-  placeholder
-}) => (
-  <div className="flex flex-col sm:grid sm:grid-cols-[1fr_2fr] sm:items-center gap-2 sm:gap-4 py-4 border-b border-slate-100 last:border-0 group">
-    <div className="flex flex-col gap-0.5 sm:mb-0 mb-1">
-      <span className="text-[10px] font-black text-slate-400 group-hover:text-[#1a4a8c] transition-colors uppercase tracking-tight">{labelNp}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
-      <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
+  placeholder,
+  onChange
+}) => {
+  const registered = register(name);
+  
+  return (
+    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_2fr] sm:items-center gap-2 sm:gap-4 py-4 border-b border-slate-100 last:border-0 group">
+      <div className="flex flex-col gap-0.5 sm:mb-0 mb-1">
+        <span className="text-[10px] font-black text-slate-400 group-hover:text-[#1a4a8c] transition-colors uppercase tracking-tight">{labelNp}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
+        <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
+      </div>
+      <div className="flex flex-col">
+        {as === 'select' ? (
+          <select 
+            {...registered}
+            onChange={(e) => {
+              registered.onChange(e);
+              onChange?.(e);
+            }}
+            className={cn(
+              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none uppercase transition-all",
+              error && "border-red-500/50 bg-red-50"
+            )}
+          >
+            {children}
+          </select>
+        ) : (
+          <input 
+            type={type}
+            placeholder={placeholder}
+            {...registered}
+            onChange={(e) => {
+              registered.onChange(e);
+              onChange?.(e);
+            }}
+            className={cn(
+              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-400 uppercase",
+              error && "border-red-500/50 bg-red-50"
+            )}
+          />
+        )}
+        {error && <span className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1">{error.message}</span>}
+      </div>
     </div>
-    <div className="flex flex-col">
-      {as === 'select' ? (
-        <select 
-          {...register(name)}
-          className={cn(
-            "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none uppercase transition-all",
-            error && "border-red-500/50 bg-red-50"
-          )}
-        >
-          {children}
-        </select>
-      ) : (
-        <input 
-          type={type}
-          placeholder={placeholder}
-          {...register(name)}
-          className={cn(
-            "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a4a8c]/20 focus:bg-white outline-none transition-all placeholder:text-slate-400 uppercase",
-            error && "border-red-500/50 bg-red-50"
-          )}
-        />
-      )}
-      {error && <span className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1">{error.message}</span>}
-    </div>
-  </div>
-);
+  );
+};
 
 const GroupTitle: React.FC<{ title: string }> = ({ title }) => (
   <div className="relative flex items-center gap-4 my-12">
@@ -80,15 +98,60 @@ const Section: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export const Step0Applicant: React.FC = () => {
-  const { formData, updateFormData, setStep } = useFormContext();
-  const { register, handleSubmit, formState: { errors } } = useForm<ApplicantData>({
+  const { formData, updateFormData, setStep, editingUid } = useFormContext();
+  const [isChecking, setIsChecking] = React.useState(false);
+  const { register, handleSubmit, setValue, setError, formState: { errors } } = useForm<ApplicantData>({
     resolver: zodResolver(applicantSchema),
     defaultValues: formData as ApplicantData
   });
 
-  const onSubmit = (data: ApplicantData) => {
-    updateFormData(data);
-    setStep(1);
+  const onSubmit = async (data: ApplicantData) => {
+    setIsChecking(true);
+    try {
+      const q = query(
+        collection(db, 'applications'),
+        where('citizenshipNo', '==', data.citizenshipNo)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const exists = querySnapshot.docs.some(doc => doc.id !== editingUid);
+      
+      if (exists) {
+        setError('citizenshipNo', {
+          type: 'manual',
+          message: 'Citizenship Number already registered / यो नागरिकता नं पहिले नै दर्ता भइसकेको छ'
+        });
+        setIsChecking(false);
+        return;
+      }
+
+      updateFormData(data);
+      setStep(1);
+    } catch (error) {
+      console.error("Uniqueness check error:", error);
+      setError('citizenshipNo', {
+        type: 'manual',
+        message: 'Error verifying uniqueness. Please try again.'
+      });
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleTransliteration = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: keyof ApplicantData, enNameField?: keyof ApplicantData) => {
+    const value = e.target.value;
+    if (!value) return;
+    
+    // Use Round-Robin to detect the intended Roman string from mixed/Devanagari input
+    const roman = Sanscript.t(value, 'devanagari', 'itrans');
+    const transliterated = Sanscript.t(roman, 'itrans', 'devanagari');
+    
+    setValue(name, transliterated);
+    
+    // Auto-fill English name field if it's provided and we have a valid roman string
+    if (enNameField) {
+      setValue(enNameField, roman.toUpperCase() as any);
+    }
   };
 
   return (
@@ -104,17 +167,53 @@ export const Step0Applicant: React.FC = () => {
       <GroupTitle title="Application Identification" />
       <Section>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-2">
-          <InputField labelNp="पहिलो नाम" labelEn="First Name" name="firstNameNp" register={register} error={errors.firstNameNp} required />
+          <InputField 
+            labelNp="पहिलो नाम" 
+            labelEn="First Name" 
+            name="firstNameNp" 
+            register={register} 
+            error={errors.firstNameNp} 
+            required 
+            placeholder="e.g. 'nepAl' for 'नेपाल'"
+            onChange={(e) => handleTransliteration(e, 'firstNameNp', 'firstNameEn')}
+          />
           <InputField labelNp="First Name" labelEn="पहिलो नाम" name="firstNameEn" register={register} error={errors.firstNameEn} required />
           
-          <InputField labelNp="बीचको नाम" labelEn="Middle Name" name="middleNameNp" register={register} error={errors.middleNameNp} />
+          <InputField 
+            labelNp="बीचको नाम" 
+            labelEn="Middle Name" 
+            name="middleNameNp" 
+            register={register} 
+            error={errors.middleNameNp} 
+            placeholder="e.g. 'prasAda' for 'प्रसाद'"
+            onChange={(e) => handleTransliteration(e, 'middleNameNp', 'middleNameEn')}
+          />
           <InputField labelNp="Middle Name" labelEn="बीचको नाम" name="middleNameEn" register={register} error={errors.middleNameEn} />
           
-          <InputField labelNp="थर" labelEn="Last Name" name="lastNameNp" register={register} error={errors.lastNameNp} required />
+          <InputField 
+            labelNp="थर" 
+            labelEn="Last Name" 
+            name="lastNameNp" 
+            register={register} 
+            error={errors.lastNameNp} 
+            required 
+            placeholder="e.g. 'sharma' for 'शर्मा''"
+            onChange={(e) => handleTransliteration(e, 'lastNameNp', 'lastNameEn')}
+          />
           <InputField labelNp="Last Name" labelEn="थर" name="lastNameEn" register={register} error={errors.lastNameEn} required />
           
           <InputField labelNp="जन्म मिति" labelEn="Date of Birth" name="dobNp" type="date" register={register} error={errors.dobNp} />
           <InputField labelNp="Date of Birth" labelEn="जन्म मिति" name="dobEn" type="date" register={register} error={errors.dobEn} />
+          
+          <InputField 
+            labelNp="नागरिकता नं" 
+            labelEn="Citizenship No" 
+            name="citizenshipNo" 
+            register={register} 
+            error={errors.citizenshipNo} 
+            required
+            placeholder="e.g. 12-34-56-789" 
+          />
           
           <InputField labelNp="जन्म स्थान" labelEn="Birth Place" name="birthPlace" register={register} error={errors.birthPlace} as="select">
             <option value="">SELECT BIRTH DISTRICT</option>
@@ -125,8 +224,12 @@ export const Step0Applicant: React.FC = () => {
           
           <InputField labelNp="नागरिकताको किसिम" labelEn="CC Type" name="ccType" register={register} error={errors.ccType} as="select">
              <option value="">SELECT CC TYPE</option>
-             <option value="descent">CITIZENSHIP BY DESCENT</option>
-             <option value="naturalized">NATURALIZED CITIZENSHIP</option>
+             <option value="descent">Citizenship by Descent/वंशज</option>
+             <option value="naturalized">Naturalized Citizenship/अङ्गीकृत</option>
+             <option value="marriage">Naturalized Citizenship by Marriage/वैवाहिक अङ्गीकृत</option>
+             <option value="birth">Citizenship by Birth/जन्मको आधारमा</option>
+             <option value="birth_at">Citizenship at Birth/जन्मसिद्ध</option>
+             <option value="honorary">Honorary Citizenship/सम्मानार्थ</option>
           </InputField>
  
           <InputField labelNp="जारी जिल्ला" labelEn="Issued District" name="district" register={register} error={errors.district} as="select">
@@ -202,9 +305,10 @@ export const Step0Applicant: React.FC = () => {
       <div className="flex justify-end mt-12 pb-12">
         <button 
           type="submit"
-          className="bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white px-16 py-5 rounded-2xl shadow-xl shadow-[#1a4a8c]/20 font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center gap-3"
+          disabled={isChecking}
+          className="bg-[#1a4a8c] hover:bg-[#1a4a8c]/90 text-white px-16 py-5 rounded-2xl shadow-xl shadow-[#1a4a8c]/20 font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Initialize Next Phase
+          {isChecking ? 'Verifying Registry...' : 'Initialize Next Phase'}
         </button>
       </div>
     </form>

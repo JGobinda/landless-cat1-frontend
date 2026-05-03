@@ -5,6 +5,7 @@ import { familySchema, FamilyData } from '../../lib/schema';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
 import locationsData from '../../lib/locations.json';
+import Sanscript from 'sanscript';
 
 type Locations = {
   [state: string]: {
@@ -16,39 +17,50 @@ type Locations = {
 
 const locations = locationsData as Locations;
 
-const Row = ({ labelNp, labelEn, name, register, error, required, as = 'input', options = [], disabled, onChange }: any) => (
-  <div className="flex flex-col sm:grid sm:grid-cols-[1fr_1fr] sm:items-center gap-2 sm:gap-8 py-3 border-b border-slate-100 last:border-0 group transition-all px-4">
-     <div className="flex flex-col">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#1a4a8c] transition-colors">{labelNp}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
-        <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}</span>
-     </div>
-     <div className="flex flex-col">
-        {as === 'select' ? (
-          <select 
-            {...register(name)} 
-            disabled={disabled}
-            onChange={onChange}
-            className={cn(
-              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase disabled:opacity-30",
-              error && "border-red-400/50 bg-red-400/5"
-            )}
-          >
-            {options.map((opt: any) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
-          </select>
-        ) : (
-          <input 
-            {...register(name)} 
-            disabled={disabled}
-            className={cn(
-              "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase placeholder:text-slate-400 disabled:opacity-30",
-              error && "border-red-400/50 bg-red-400/5"
-            )}
-          />
-        )}
-        {error && <p className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1">{error.message}</p>}
-     </div>
-  </div>
-);
+const Row = ({ labelNp, labelEn, name, register, error, required, as = 'input', options = [], disabled, onChange, placeholder }: any) => {
+  const registered = register(name);
+  return (
+    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_1fr] sm:items-center gap-2 sm:gap-8 py-3 border-b border-slate-100 last:border-0 group transition-all px-4">
+       <div className="flex flex-col">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#1a4a8c] transition-colors">{labelNp}{required && <span className="text-[#dc2626] ml-1">*</span>}</span>
+          <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{labelEn}</span>
+       </div>
+       <div className="flex flex-col">
+          {as === 'select' ? (
+            <select 
+              {...registered} 
+              disabled={disabled}
+              onChange={(e) => {
+                registered.onChange(e);
+                onChange?.(e);
+              }}
+              className={cn(
+                "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase disabled:opacity-30",
+                error && "border-red-400/50 bg-red-400/5"
+              )}
+            >
+              {options.map((opt: any) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
+            </select>
+          ) : (
+            <input 
+              {...registered} 
+              disabled={disabled}
+              placeholder={placeholder}
+              onChange={(e) => {
+                registered.onChange(e);
+                onChange?.(e);
+              }}
+              className={cn(
+                "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:border-[#1a4a8c]/50 focus:ring-2 focus:ring-[#1a4a8c]/20 transition-all uppercase placeholder:text-slate-400 disabled:opacity-30",
+                error && "border-red-400/50 bg-red-400/5"
+              )}
+            />
+          )}
+          {error && <p className="text-[10px] text-[#dc2626] font-bold mt-1 ml-1">{error.message}</p>}
+       </div>
+    </div>
+  );
+};
 
 const GroupHeader = ({ title }: { title: string }) => (
   <div className="flex items-center gap-4 mb-6 mt-12 first:mt-0">
@@ -70,6 +82,22 @@ export const Step2Family: React.FC = () => {
   });
 
   const watchAll = watch();
+
+  const handleTransliteration = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: keyof FamilyData, enNameField?: keyof FamilyData) => {
+    const value = e.target.value;
+    if (!value) return;
+    
+    // Round-Robin detection for phonetic typing
+    const roman = Sanscript.t(value, 'devanagari', 'itrans');
+    const transliterated = Sanscript.t(roman, 'itrans', 'devanagari');
+    
+    setValue(name, transliterated as any);
+    
+    // Auto-fill english field
+    if (enNameField) {
+      setValue(enNameField, roman.toUpperCase() as any);
+    }
+  };
 
   const stateOptions = useMemo(() => [
     { val: '', label: 'SELECT STATE' },
@@ -196,9 +224,25 @@ export const Step2Family: React.FC = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto animate-in fade-in zoom-in-95 duration-700 px-4">
       <SectionCard title="Father's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
-            <Row labelNp="पहिलो नाम" labelEn="First Name" name="fatherFirstNameNp" register={register} error={errors.fatherFirstNameNp} />
+            <Row 
+              labelNp="पहिलो नाम" 
+              labelEn="First Name" 
+              name="fatherFirstNameNp" 
+              register={register} 
+              error={errors.fatherFirstNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'fatherFirstNameNp', 'fatherFirstNameEn')}
+            />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="fatherFirstNameEn" register={register} error={errors.fatherFirstNameEn} />
-            <Row labelNp="थर" labelEn="Last Name" name="fatherLastNameNp" register={register} error={errors.fatherLastNameNp} />
+            <Row 
+              labelNp="थर" 
+              labelEn="Last Name" 
+              name="fatherLastNameNp" 
+              register={register} 
+              error={errors.fatherLastNameNp} 
+              placeholder="e.g. 'sharma' for 'शर्मा'"
+              onChange={(e: any) => handleTransliteration(e, 'fatherLastNameNp', 'fatherLastNameEn')}
+            />
             <Row labelNp="Last Name" labelEn="थर" name="fatherLastNameEn" register={register} error={errors.fatherLastNameEn} />
             <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="fatherCitizenshipNo" register={register} />
             <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="fatherNationality" register={register} />
@@ -208,10 +252,27 @@ export const Step2Family: React.FC = () => {
 
       <SectionCard title="Mother's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
-            <Row labelNp="पहिलो नाम" labelEn="First Name" name="motherFirstNameNp" register={register} error={errors.motherFirstNameNp} />
+            <Row 
+              labelNp="पहिलो नाम" 
+              labelEn="First Name" 
+              name="motherFirstNameNp" 
+              register={register} 
+              error={errors.motherFirstNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'motherFirstNameNp', 'motherFirstNameEn')}
+            />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="motherFirstNameEn" register={register} error={errors.motherFirstNameEn} />
-            <Row labelNp="थर" labelEn="Last Name" name="motherLastNameNp" register={register} error={errors.motherLastNameNp} />
+            <Row 
+              labelNp="थर" 
+              labelEn="Last Name" 
+              name="motherLastNameNp" 
+              register={register} 
+              error={errors.motherLastNameNp} 
+              placeholder="e.g. 'sharma' for 'शर्मा'"
+              onChange={(e: any) => handleTransliteration(e, 'motherLastNameNp', 'motherLastNameEn')}
+            />
             <Row labelNp="Last Name" labelEn="थर" name="motherLastNameEn" register={register} error={errors.motherLastNameEn} />
+            <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="motherCitizenshipNo" register={register} />
             <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="motherNationality" register={register} />
          </div>
          <RelativeAddressGroup prefix="mother" label="Mother" />
@@ -219,10 +280,27 @@ export const Step2Family: React.FC = () => {
 
        <SectionCard title="Grandfather's Details">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-1 p-6">
-            <Row labelNp="पहिलो नाम" labelEn="First Name" name="grandFatherFirstNameNp" register={register} error={errors.grandFatherFirstNameNp} />
+            <Row 
+              labelNp="पहिलो नाम" 
+              labelEn="First Name" 
+              name="grandFatherFirstNameNp" 
+              register={register} 
+              error={errors.grandFatherFirstNameNp} 
+              placeholder="e.g. 'nepAl' for 'नेपाल'"
+              onChange={(e: any) => handleTransliteration(e, 'grandFatherFirstNameNp', 'grandFatherFirstNameEn')}
+            />
             <Row labelNp="First Name" labelEn="पहिलो नाम" name="grandFatherFirstNameEn" register={register} error={errors.grandFatherFirstNameEn} />
-            <Row labelNp="थर" labelEn="Last Name" name="grandFatherLastNameNp" register={register} error={errors.grandFatherLastNameNp} />
+            <Row 
+              labelNp="थर" 
+              labelEn="Last Name" 
+              name="grandFatherLastNameNp" 
+              register={register} 
+              error={errors.grandFatherLastNameNp} 
+              placeholder="e.g. 'sharma' for 'शर्मा'"
+              onChange={(e: any) => handleTransliteration(e, 'grandFatherLastNameNp', 'grandFatherLastNameEn')}
+            />
             <Row labelNp="Last Name" labelEn="थर" name="grandFatherLastNameEn" register={register} error={errors.grandFatherLastNameEn} />
+            <Row labelNp="नागरिकता प्रमाण पत्र नं." labelEn="Citizenship No" name="grandFatherCitizenshipNo" register={register} />
             <Row labelNp="Nationality" labelEn="राष्ट्रियता" name="grandFatherNationality" register={register} />
          </div>
          <RelativeAddressGroup prefix="grandFather" label="Grandfather" />

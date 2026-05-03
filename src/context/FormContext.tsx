@@ -16,6 +16,7 @@ interface FormContextType {
   resetForm: () => void;
   startEditing: (uid: string, data: any) => void;
   saveData: () => Promise<void>;
+  editingUid: string | null;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
@@ -139,7 +140,8 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setView,
       resetForm,
       startEditing,
-      saveData 
+      saveData,
+      editingUid
     }}>
       {children}
     </FormContext.Provider>
