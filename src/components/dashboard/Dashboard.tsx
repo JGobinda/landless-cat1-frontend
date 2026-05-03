@@ -268,7 +268,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 bg-[#1a4a8c]/5 p-6 md:p-0 rounded-3xl md:bg-transparent">
         <div className="space-y-1 md:space-y-2">
           <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase">Registry Portal</h1>
-          <p className="text-slate-500 text-sm font-medium tracking-tight">Passport Application Management & Civil Records</p>
+          {/* <p className="text-slate-500 text-sm font-medium tracking-tight">Passport Application Management & Civil Records</p> */}
         </div>
         
         <button 
