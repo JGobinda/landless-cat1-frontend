@@ -410,6 +410,7 @@ export const Dashboard: React.FC = () => {
           <table className="w-full text-left border-collapse">
              <thead>
                 <tr className="bg-slate-50">
+                   <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Citizenship ID</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Applicant Name</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Record Status</th>
                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">Submission Date</th>
@@ -434,6 +435,11 @@ export const Dashboard: React.FC = () => {
                   </tr>
                 ) : filteredApps.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-8 py-6">
+                      <span className="text-[11px] font-mono font-bold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                        {app.citizenshipNo || 'N/A'}
+                      </span>
+                    </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[#1a4a8c]/10 border border-[#1a4a8c]/10 flex items-center justify-center text-[#1a4a8c] font-bold uppercase">
