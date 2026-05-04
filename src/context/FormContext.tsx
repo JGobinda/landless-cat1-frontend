@@ -1,59 +1,121 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { FormData } from '../lib/schema';
-import { auth, db, OperationType, handleFirestoreError } from '../lib/firebase';
-import { onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { AuthUser, logoutUser } from '../services/authService';
+import { tokenStorage } from '../services/api';
 
 interface FormContextType {
-  formData: Partial<FormData>;
-  updateFormData: (data: Partial<FormData>) => void;
-  step: number;
-  setStep: (step: number) => void;
-  user: User | null;
-  loading: boolean;
+  formData: any;
+  updateFormData: (data: any) => void;
+  resetForm: () => void;
   view: 'dashboard' | 'form' | 'list';
   setView: (view: 'dashboard' | 'form' | 'list') => void;
-  resetForm: () => void;
-  startEditing: (uid: string, data: any) => void;
-  saveData: () => Promise<void>;
+  step: number;
+  setStep: (step: number) => void;
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
+  logout: () => void;
+  loading: boolean;
   editingUid: string | null;
+  startEditing: (uid: string, data: any) => void;
   deleteApplication: (uid: string) => Promise<void>;
+  processId: string | null;
+  setProcessId: (id: string | null) => void;
+  saveData: () => Promise<void>;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
 export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [formData, setFormData] = useState<Partial<FormData>>({});
-  const [step, setStep] = useState(0);
-  const [user, setUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<any>({ category: 'CAT1' });
   const [view, setView] = useState<'dashboard' | 'form' | 'list'>('dashboard');
+  const [step, setStep] = useState(-1);
   const [editingUid, setEditingUid] = useState<string | null>(null);
+  const [processId, setProcessId] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser && currentUser.email === 'test@gmail.com') {
-        setView('dashboard');
-      } else if (currentUser) {
-        setView('form');
-        setEditingUid(currentUser.uid);
-        // UI ONLY MODE: Bypass Firestore Loading
-      }
-      setLoading(false);
-    });
+    const savedForm = localStorage.getItem('form_data');
+    if (savedForm) setFormData(JSON.parse(savedForm));
+    
+    const savedProcessId = localStorage.getItem('process_id');
+    if (savedProcessId) setProcessId(savedProcessId);
 
-    return () => unsubscribe();
+    const token = tokenStorage.getAccess();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const storedUser = localStorage.getItem('authUser');
+    if (storedUser) {
+      try {
+        const parsed: AuthUser = JSON.parse(storedUser);
+        setUser(parsed);
+      } catch {
+        tokenStorage.clear();
+        localStorage.removeItem('authUser');
+      }
+    }
+    setLoading(false);
   }, []);
 
+  // global logout
+  useEffect(() => {
+    const handleLogout = () => {
+      setUser(null);
+      localStorage.removeItem('authUser');
+      localStorage.removeItem('process_id');
+      setProcessId(null);
+    };
+    window.addEventListener('auth:logout', handleLogout);
+    return () => window.removeEventListener('auth:logout', handleLogout);
+  }, []);
+
+  const handleSetUser = (u: AuthUser | null) => {
+    setUser(u);
+    if (u) {
+      localStorage.setItem('authUser', JSON.stringify(u));
+    } else {
+      localStorage.removeItem('authUser');
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (e) {
+      console.error('Logout failed', e);
+    }
+    handleSetUser(null);
+    setProcessId(null);
+    localStorage.removeItem('process_id');
+  };
+
+  const updateFormData = (data: any) => {
+    setFormData((prev: any) => {
+      const updated = { ...prev, ...data };
+      localStorage.setItem('form_data', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const updateProcessId = (id: string | null) => {
+    setProcessId(id);
+    if (id) {
+      localStorage.setItem('process_id', id);
+    } else {
+      localStorage.removeItem('process_id');
+    }
+  };
+
   const resetForm = () => {
-    setFormData({});
+    setFormData({ category: 'CAT1' });
     setStep(-1);
-    // Generate a fresh unique ID for NEW applications to prevent overwriting
-    const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-    setEditingUid(newAppId);
+    setEditingUid(null);
+    setProcessId(null);
+    localStorage.removeItem('form_data');
+    localStorage.removeItem('process_id');
   };
 
   const startEditing = (uid: string, data: any) => {
@@ -63,46 +125,33 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setView('form');
   };
 
-  const updateFormData = (data: Partial<FormData>) => {
-    setFormData((prev) => {
-      const { id: _, ...rest } = prev;
-      const newData = { ...rest, ...data };
-      const targetUid = editingUid || user?.uid;
-      
-      // DB Save bypassed for UI-ONLY mode
-      return newData;
-    });
-  };
-
-  const handleSetStep = (newStep: number) => {
-    setStep(newStep);
-    // const targetUid = editingUid || user?.uid;
-    // DB Save bypassed for UI-ONLY mode
-  };
-
   const saveData = async () => {
-    // DB Save bypassed for UI-ONLY mode
+    // save left
   };
 
   const deleteApplication = async (uid: string) => {
-    // DB Save bypassed for UI-ONLY mode
+    // delete left
   };
 
   return (
-    <FormContext.Provider value={{ 
-      formData, 
-      updateFormData, 
-      step, 
-      setStep: handleSetStep, 
-      user, 
-      loading,
+    <FormContext.Provider value={{
+      formData,
+      updateFormData,
+      resetForm,
       view,
       setView,
-      resetForm,
-      startEditing,
-      saveData,
+      step,
+      setStep,
+      user,
+      setUser: handleSetUser,
+      logout,
+      loading,
       editingUid,
-      deleteApplication
+      startEditing,
+      deleteApplication,
+      processId,
+      setProcessId: updateProcessId,
+      saveData
     }}>
       {children}
     </FormContext.Provider>
@@ -111,8 +160,6 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useFormContext = () => {
   const context = useContext(FormContext);
-  if (!context) {
-    throw new Error('useFormContext must be used within a FormProvider');
-  }
+  if (!context) throw new Error('useFormContext must be used within a FormProvider');
   return context;
 };

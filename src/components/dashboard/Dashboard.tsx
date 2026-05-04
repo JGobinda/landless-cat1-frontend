@@ -1,10 +1,117 @@
 import React, { useEffect, useState } from 'react';
-import { db, OperationType, handleFirestoreError } from '../../lib/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useFormContext } from '../../context/FormContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Plus, Search, Calendar, FileText, ChevronRight, Filter, X, MapPin, Phone, Users, ShieldCheck, Clock, FileCheck, XCircle, MoreHorizontal } from 'lucide-react';
 import { cn } from '../../lib/utils';
+
+const MOCK_APPLICATIONS = [
+  {
+    id: 'D-2026-NID-88392',
+    firstNameEn: 'Ram',
+    lastNameEn: 'Bahadur Thapa',
+    nidNo: '987-223-9128',
+    citizenshipNo: '12-01-72-04532',
+    gender: 'MALE',
+    nationality: 'NEPALI',
+    maritalStatus: 'MARRIED',
+    education: 'Secondary Level',
+    business: 'Agriculture',
+    caste: 'Chhetri',
+    religion: 'Hinduism',
+    birthPlace: 'Kathmandu',
+    district: 'Kathmandu',
+    issuedDate: '2072-05-12',
+    ccType: 'Citizenship',
+    permMobile: '9841XXXXXX',
+    permEmail: 'ram.bahadur@example.com',
+    permState: 'Bagmati',
+    permDistrict: 'Kathmandu',
+    permLocalLevel: 'Kathmandu Metropolitan',
+    permWard: '32',
+    fatherFirstNameEn: 'Hari',
+    fatherLastNameEn: 'Thapa',
+    fatherPermState: 'Bagmati',
+    fatherPermDistrict: 'Kathmandu',
+    fatherPermLocalLevel: 'Kathmandu Metropolitan',
+    fatherPermWard: '32',
+    motherFirstNameEn: 'Sita',
+    motherLastNameEn: 'Thapa',
+    grandFatherFirstNameEn: 'Krishna',
+    grandFatherLastNameEn: 'Thapa',
+    currentStep: 3,
+    category: 'Category 1',
+    updatedAt: { toDate: () => new Date('2026-05-01T10:30:00Z') },
+    photoUrl: null
+  },
+  {
+    id: 'D-2026-NID-44581',
+    firstNameEn: 'Sita',
+    lastNameEn: 'Kumari Shah',
+    nidNo: '882-119-3382',
+    citizenshipNo: '67-22-09-11234',
+    gender: 'FEMALE',
+    nationality: 'NEPALI',
+    maritalStatus: 'MARRIED',
+    education: 'Bachelor Degree',
+    business: 'Service',
+    caste: 'Shah',
+    religion: 'Hinduism',
+    birthPlace: 'Pokhara',
+    district: 'Kaski',
+    issuedDate: '2075-08-20',
+    ccType: 'Citizenship',
+    permMobile: '9851XXXXXX',
+    permEmail: 'sita.shah@example.com',
+    permState: 'Gandaki',
+    permDistrict: 'Kaski',
+    permLocalLevel: 'Pokhara Metropolitan',
+    permWard: '15',
+    fatherFirstNameEn: 'Manish',
+    fatherLastNameEn: 'Shah',
+    motherFirstNameEn: 'Maya',
+    motherLastNameEn: 'Shah',
+    grandFatherFirstNameEn: 'Gopal',
+    grandFatherLastNameEn: 'Shah',
+    currentStep: 3,
+    category: 'Category 2',
+    updatedAt: { toDate: () => new Date('2026-05-02T14:45:00Z') },
+    photoUrl: null
+  },
+  {
+    id: 'D-2026-NID-22910',
+    firstNameEn: 'Bikram',
+    lastNameEn: 'Sunuwar',
+    nidNo: '112-998-4452',
+    citizenshipNo: 'None',
+    gender: 'MALE',
+    nationality: 'NEPALI',
+    maritalStatus: 'SINGLE',
+    education: 'Under-SLC',
+    business: 'Labor',
+    caste: 'Sunuwar',
+    religion: 'Kirat',
+    birthPlace: 'Dhankuta',
+    district: 'Dhankuta',
+    issuedDate: 'N/A',
+    ccType: 'Birth Registration',
+    permMobile: '9812XXXXXX',
+    permEmail: 'bikram.s@example.com',
+    permState: 'Koshi',
+    permDistrict: 'Dhankuta',
+    permLocalLevel: 'Dhankuta Municipality',
+    permWard: '04',
+    fatherFirstNameEn: 'Purna',
+    fatherLastNameEn: 'Sunuwar',
+    motherFirstNameEn: 'Devi',
+    motherLastNameEn: 'Sunuwar',
+    grandFatherFirstNameEn: 'Lalit',
+    grandFatherLastNameEn: 'Sunuwar',
+    currentStep: 1,
+    category: 'Category 3',
+    updatedAt: { toDate: () => new Date('2026-05-04T08:00:00Z') },
+    photoUrl: null
+  }
+];
 
 const DeleteConfirmationModal = ({ app, onClose, onConfirm, isDeleting }: { app: any, onClose: () => void, onConfirm: () => void, isDeleting: boolean }) => {
   if (!app) return null;
@@ -79,7 +186,7 @@ const ApplicationModal = ({ app, onClose, startEditing, onDeleteClick }: { app: 
               </div>
               <div>
                  <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">{app.firstNameEn} {app.lastNameEn}</h2>
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Application ID: {app.id.slice(0, 8)}</p>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Application ID: {app.id.slice(0, 15)}</p>
               </div>
            </div>
            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400">
@@ -299,33 +406,25 @@ export const Dashboard: React.FC = () => {
   const handleDelete = async () => {
     if (!appToDelete) return;
     setIsDeleting(true);
-    try {
-      await deleteApplication(appToDelete.id);
+    // Hardcoded delete: just update local state
+    setTimeout(() => {
+      setApplications(prev => prev.filter(a => a.id !== appToDelete.id));
       setAppToDelete(null);
       if (selectedApp?.id === appToDelete.id) {
         setSelectedApp(null);
       }
-    } catch (error) {
-      console.error("Delete failed:", error);
-    } finally {
       setIsDeleting(false);
-    }
+    }, 500);
   };
 
   useEffect(() => {
-    const q = query(collection(db, 'applications'), orderBy('updatedAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setApplications(docs);
+    // ─── Simulation of Identity Server Query ───────────────────────────────
+    const timer = setTimeout(() => {
+      setApplications(MOCK_APPLICATIONS);
       setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'applications');
-    });
+    }, 2000);
 
-    return () => unsubscribe();
+    return () => clearTimeout(timer);
   }, []);
 
   const filteredApps = applications.filter((app, idx) => {
@@ -349,9 +448,9 @@ export const Dashboard: React.FC = () => {
   ];
 
   const bottomStats = [
-    { label: 'First Category', sublabel: 'NID, नागरिकता र मतदाता परिचयपत्र भएका', value: 0 },
-    { label: 'Second Category', sublabel: 'NID छैन तर नागरिकता वा मतदाता परिचयपत्र छ', value: 0 },
-    { label: 'Third Category', sublabel: 'कुनै सरकारी कागजात नभएका', value: 0 },
+    { label: 'First Category', sublabel: 'NID, नागरिकता र मतदाता परिचयपत्र भएका', value: applications.filter(a => a.category === 'Category 1').length },
+    { label: 'Second Category', sublabel: 'NID छैन तर नागरिकता वा मतदाता परिचयपत्र छ', value: applications.filter(a => a.category === 'Category 2').length },
+    { label: 'Third Category', sublabel: 'कुनै सरकारी कागजात नभएका', value: applications.filter(a => a.category === 'Category 3').length },
   ];
 
   return (
@@ -384,14 +483,6 @@ export const Dashboard: React.FC = () => {
           </h1>
           <p className="text-slate-500 text-sm font-medium tracking-tight">सुकुम्बासी निवेदकहरूको समग्र विवरण</p>
         </div>
-        
-        {/* <button 
-          onClick={() => { resetForm(); setView('form'); }}
-          className="flex items-center justify-center gap-4 px-8 py-5 bg-[#dc2626] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.22em] hover:bg-[#dc2626]/90 active:scale-95 transition-all shadow-xl shadow-red-900/20 w-full md:w-auto"
-        >
-          <Plus size={18} />
-          Begin Registration
-        </button> */}
       </div>
 
       {/* Stats Section */}
@@ -565,19 +656,19 @@ export const Dashboard: React.FC = () => {
                              onClick={() => { setActiveMenu(null); setSelectedApp(app); }}
                              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                            >
-                              View
+                               View
                            </button>
                            <button 
                              onClick={() => { setActiveMenu(null); startEditing(app.id, app); }}
                              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                            >
-                              Edit
+                               Edit
                            </button>
                            <button 
                              onClick={() => { setActiveMenu(null); /* Placeholder for Status functionality */ }}
                              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                            >
-                              Status
+                               Status
                            </button>
                          </div>
                        )}

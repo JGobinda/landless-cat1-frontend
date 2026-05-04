@@ -1,8 +1,8 @@
 import React from 'react';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
-import { Home, LogOut, User, LayoutDashboard } from 'lucide-react';
-import { signOut } from '../../lib/firebase';
+import { LogOut, LayoutDashboard } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Footer } from './Footer';
 import nepalEmblem from '../../assets/Emblem_of_Nepal.svg';
 
@@ -17,26 +17,14 @@ const steps = [
 ];
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { step, setStep, user, view, setView, resetForm } = useFormContext();
+  const { step, setStep, user, view, setView, resetForm, logout } = useFormContext();
 
   return (
     <div className="min-h-screen font-sans bg-slate-50 flex flex-col">
-      {/* Top Banner - Government Branding */}
+      {/* Top Banner */}
       <div className="bg-[#1a4a8c] text-white border-b-4 border-[#dc2626]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 md:gap-6">
-            {/* <div 
-              className={cn(
-                "flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all group",
-                view === 'dashboard' ? "bg-white/10 border border-white/20" : "hover:bg-white/5"
-              )}
-              onClick={() => setView('dashboard')}
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                <LayoutDashboard size={18} />
-              </div>
-              <span className="font-bold text-sm tracking-tight hidden sm:block">Portal Home</span>
-            </div> */}
             <div className="flex items-center gap-4">
               <img 
                 src={nepalEmblem} 
@@ -76,7 +64,10 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           
           <div className="ml-auto">
             <button 
-              onClick={() => signOut()}
+              onClick={async () => {
+                await logout();
+                toast.success('Logged out successfully');
+              }}
               className="flex items-center gap-2 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all rounded-lg"
             >
               <LogOut size={16} />
@@ -85,7 +76,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         </div>
       </div>
 
-      {/* Navigation Tabs - Light Mode Stepper */}
+      {/* Navigation Tabs */}
       {view === 'form' && step >= 0 && (
         <div className="sticky top-0 z-20 pt-4 bg-slate-50/80 backdrop-blur-md px-4">
           <div className="max-w-[1400px] mx-auto flex items-center gap-1 bg-white border border-slate-200 rounded-2xl p-1 shadow-sm overflow-x-auto no-scrollbar">

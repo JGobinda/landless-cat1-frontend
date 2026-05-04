@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { familySchema, FamilyData } from '../../lib/schema';
 import locationsData from '../../lib/locations.json';
 import Sanscript from 'sanscript';
+import { demographicService } from '../../services/demographicService';
+import { toast } from 'react-hot-toast';
 
 type Locations = {
   [state: string]: {
@@ -70,8 +72,18 @@ const GroupHeader = ({ title }: { title: string }) => (
   </div>
 );
 
+const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <div className="mb-10">
+     <GroupHeader title={title} />
+     <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
+        {children}
+     </div>
+  </div>
+);
+
 export const Step2Family: React.FC = () => {
-  const { formData, updateFormData, setStep } = useFormContext();
+  const { formData, updateFormData, setStep, processId } = useFormContext();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<FamilyData>({
     resolver: zodResolver(familySchema),
     defaultValues: {
@@ -93,7 +105,6 @@ export const Step2Family: React.FC = () => {
     const value = e.target.value;
     if (!value) return;
     
-    // Round-Robin detection for phonetic typing
     const roman = Sanscript.t(value, 'devanagari', 'itrans');
     const transliterated = Sanscript.t(roman, 'itrans', 'devanagari');
     
@@ -203,9 +214,23 @@ export const Step2Family: React.FC = () => {
     );
   };
 
-  const onSubmit = (data: FamilyData) => {
-    updateFormData(data);
-    setStep(3);
+  const onSubmit = async (data: FamilyData) => {
+    setIsSubmitting(true);
+    const updatedData = { ...formData, ...data };
+    
+    try {
+      if (processId) {
+        await demographicService.patchDemographic(processId, updatedData);
+        toast.success('Family records synchronized');
+      }
+      updateFormData(data);
+      setStep(3);
+    } catch (error: any) {
+      console.error('Demographic API Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update family records');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -522,20 +547,12 @@ export const Step2Family: React.FC = () => {
         </button>
         <button 
           type="submit"
-          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95"
+          disabled={isSubmitting}
+          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95 disabled:opacity-50"
         >
-          Proceed to Land & Housing
+          {isSubmitting ? 'SYNCING...' : 'Proceed to Land & Housing'}
         </button>
       </div>
     </form>
   );
 };
-
-const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
-  <div className="mb-10">
-     <GroupHeader title={title} />
-     <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
-        {children}
-     </div>
-  </div>
-);

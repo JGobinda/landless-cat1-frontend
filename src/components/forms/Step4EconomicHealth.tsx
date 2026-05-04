@@ -5,6 +5,8 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { economicHealthSchema, EconomicHealthData } from '../../lib/schema';
 import { Plus, Trash2 } from 'lucide-react';
+import { demographicService } from '../../services/demographicService';
+import { toast } from 'react-hot-toast';
 
 const Row = ({ labelNp, labelEn, name, register, error, required, as = 'input', options = [], disabled, onChange, placeholder }: any) => {
   const registered = register(name);
@@ -85,7 +87,8 @@ const SectionCard = ({ title, children }: { title: string, children: React.React
 );
 
 export const Step4EconomicHealth: React.FC = () => {
-  const { formData, updateFormData, setStep } = useFormContext();
+  const { formData, updateFormData, setStep, processId } = useFormContext();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { register, handleSubmit, watch, control, formState: { errors } } = useForm<EconomicHealthData>({
     resolver: zodResolver(economicHealthSchema),
     defaultValues: {
@@ -105,9 +108,23 @@ export const Step4EconomicHealth: React.FC = () => {
   const watchChronicIllness = watch('hasChronicIllness');
   const watchSavings = watch('hasSavings');
 
-  const onSubmit = (data: EconomicHealthData) => {
-    updateFormData(data);
-    setStep(5); // Proceed to Biometrics
+  const onSubmit = async (data: EconomicHealthData) => {
+    setIsSubmitting(true);
+    const updatedData = { ...formData, ...data };
+    
+    try {
+      if (processId) {
+        await demographicService.patchDemographic(processId, updatedData);
+        toast.success('Economic profile synchronized');
+      }
+      updateFormData(data);
+      setStep(5);
+    } catch (error: any) {
+      console.error('Demographic API Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update economic profile');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -246,9 +263,10 @@ export const Step4EconomicHealth: React.FC = () => {
         </button>
         <button 
           type="submit"
-          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95"
+          disabled={isSubmitting}
+          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-blue-900/20 transition-all active:scale-95 disabled:opacity-50"
         >
-          Proceed to Biometric Photo
+          {isSubmitting ? 'SYNCING...' : 'Proceed to Biometric Photo'}
         </button>
       </div>
     </form>

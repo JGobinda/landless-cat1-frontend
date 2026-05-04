@@ -35,7 +35,8 @@ export const contactSchema = z.object({
   permDistrict: z.string().optional(),
   permLocalLevel: z.string().optional(),
   permWard: z.string().optional(),
-  permVillage: z.string().optional(),
+  permVillageNp: z.string().optional(),
+  permVillageEn: z.string().optional(),
   copyToTemp: z.boolean().optional(),
   tempPhone: z.string().optional(),
   tempMobile: z.string().optional(),
@@ -43,7 +44,8 @@ export const contactSchema = z.object({
   tempDistrict: z.string().optional(),
   tempLocalLevel: z.string().optional(),
   tempWard: z.string().optional(),
-  tempVillage: z.string().optional(),
+  tempVillageNp: z.string().optional(),
+  tempVillageEn: z.string().optional(),
 });
 
 export const familySchema = z.object({

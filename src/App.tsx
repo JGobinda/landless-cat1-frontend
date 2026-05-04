@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 import { FormProvider, useFormContext } from './context/FormContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './components/auth/Login';
@@ -13,7 +14,7 @@ import { Step5Biometric } from './components/forms/Step5Biometric';
 import { CategorySelection } from './components/forms/CategorySelection';
 
 const FormStepper = () => {
-  const { step, user, loading, view } = useFormContext();
+  const { step, user, loading, view, setView } = useFormContext();
 
   if (loading) {
     return (
@@ -59,6 +60,14 @@ const FormStepper = () => {
 export default function App() {
   return (
     <FormProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: { fontFamily: 'inherit', fontSize: '14px' },
+          success: { iconTheme: { primary: '#1a4a8c', secondary: '#fff' } },
+        }}
+      />
       <FormStepper />
     </FormProvider>
   );

@@ -5,6 +5,9 @@ import { contactSchema, ContactData } from '../../lib/schema';
 import { useFormContext } from '../../context/FormContext';
 import { cn } from '../../lib/utils';
 import locationsData from '../../lib/locations.json';
+import { demographicService } from '../../services/demographicService';
+import { toast } from 'react-hot-toast';
+import Sanscript from 'sanscript';
 
 // Type definition for the locations data
 type Locations = {
@@ -54,7 +57,8 @@ const FormField = ({ labelNp, labelEn, name, register, error, required, type = '
 );
 
 export const Step1Contact: React.FC = () => {
-  const { formData, updateFormData, setStep } = useFormContext();
+  const { formData, updateFormData, setStep, processId, setProcessId } = useFormContext();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ContactData>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -63,11 +67,27 @@ export const Step1Contact: React.FC = () => {
        permDistrict: formData.permDistrict || '',
        permLocalLevel: formData.permLocalLevel || '',
        permWard: formData.permWard || '',
-       permVillage: formData.permVillage || '',
+       permVillageNp: formData.permVillageNp || '',
+       permVillageEn: formData.permVillageEn || '',
        copyToTemp: formData.copyToTemp || false,
        ...formData as ContactData
     }
   });
+
+  const handleTransliteration = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: keyof ContactData, enNameField?: keyof ContactData) => {
+    const value = e.target.value;
+    if (!value) return;
+    
+    // Round-Robin detection for phonetic typing
+    const roman = Sanscript.t(value, 'devanagari', 'itrans');
+    const transliterated = Sanscript.t(roman, 'itrans', 'devanagari');
+    
+    setValue(name, transliterated as any);
+    
+    if (enNameField) {
+      setValue(enNameField, roman.toUpperCase() as any);
+    }
+  };
 
   const watchAllFields = watch();
   const copyToTemp = watchAllFields.copyToTemp;
@@ -151,7 +171,8 @@ export const Step1Contact: React.FC = () => {
     watchAllFields.permDistrict,
     watchAllFields.permLocalLevel,
     watchAllFields.permWard,
-    watchAllFields.permVillage
+    watchAllFields.permVillageNp,
+    watchAllFields.permVillageEn
   ];
 
   React.useEffect(() => {
@@ -162,13 +183,37 @@ export const Step1Contact: React.FC = () => {
       setValue('tempDistrict', watchAllFields.permDistrict);
       setValue('tempLocalLevel', watchAllFields.permLocalLevel);
       setValue('tempWard', watchAllFields.permWard);
-      setValue('tempVillage', watchAllFields.permVillage);
+      setValue('tempVillageNp', watchAllFields.permVillageNp);
+      setValue('tempVillageEn', watchAllFields.permVillageEn);
     }
   }, [copyToTemp, setValue, ...fieldsToSync]);
 
-  const onSubmit = (data: ContactData) => {
-    updateFormData(data);
-    setStep(2);
+  const onSubmit = async (data: ContactData) => {
+    setIsSubmitting(true);
+    const updatedData = { ...formData, ...data };
+    
+    try {
+      if (!processId) {
+        // Create new record
+        const response = await demographicService.createDemographic(updatedData);
+        if (response.success) {
+          setProcessId(response.data.processId);
+          toast.success('Demographic record initialized');
+        }
+      } else {
+        // Update existing record
+        await demographicService.patchDemographic(processId, updatedData);
+        toast.success('Demographic record updated');
+      }
+      
+      updateFormData(data);
+      setStep(2);
+    } catch (error: any) {
+      console.error('Demographic API Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to save demographic data');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -229,8 +274,15 @@ export const Step1Contact: React.FC = () => {
            />
            <FormField labelNp="वडा नं." labelEn="Ward" name="permWard" register={register} error={errors.permWard} as="select" options={wardOptions} />
            
-           <FormField labelNp="गाउँ / टोल" name="permVillage" register={register} error={errors.permVillage} />
-           <FormField labelEn="Village/Tole" name="permVillage" register={register} error={errors.permVillage} />
+           <FormField 
+             labelNp="गाउँ / टोल" 
+             name="permVillageNp" 
+             register={register} 
+             error={errors.permVillageNp} 
+             placeholder="ENTER IN NEPALI"
+             onChange={(e: any) => handleTransliteration(e, 'permVillageNp', 'permVillageEn')}
+           />
+           <FormField labelEn="Village/Tole" name="permVillageEn" register={register} error={errors.permVillageEn} placeholder="ENTER IN ENGLISH" />
 
         </div>
       </div>
@@ -297,8 +349,16 @@ export const Step1Contact: React.FC = () => {
              }}
            />
            <FormField labelNp="वडा नं." labelEn="Ward" name="tempWard" register={register} as="select" options={tempWardOptions} disabled={copyToTemp} />
-           <FormField labelNp="गाउँ / टोल" name="tempVillage" register={register} disabled={copyToTemp} />
-           <FormField labelEn="Village/Tole" name="tempVillage" register={register} disabled={copyToTemp} />
+           <FormField 
+             labelNp="गाउँ / टोल" 
+             name="tempVillageNp" 
+             register={register} 
+             error={errors.tempVillageNp} 
+             disabled={copyToTemp}
+             placeholder="ENTER IN NEPALI"
+             onChange={(e: any) => handleTransliteration(e, 'tempVillageNp', 'tempVillageEn')}
+           />
+           <FormField labelEn="Village/Tole" name="tempVillageEn" register={register} error={errors.tempVillageEn} disabled={copyToTemp} placeholder="ENTER IN ENGLISH" />
 
         </div>
       </div>
@@ -313,12 +373,12 @@ export const Step1Contact: React.FC = () => {
         </button>
         <button 
           type="submit"
-          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-[#1a4a8c]/20 transition-all active:scale-95"
+          disabled={isSubmitting}
+          className="px-16 py-5 bg-[#1a4a8c] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#1a4a8c]/90 shadow-xl shadow-[#1a4a8c]/20 transition-all active:scale-95 disabled:opacity-50"
         >
-          Confirm Registry
+          {isSubmitting ? 'SAVING DATA...' : 'Confirm Registry'}
         </button>
       </div>
     </form>
   );
 };
-

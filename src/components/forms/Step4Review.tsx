@@ -100,7 +100,8 @@ export const Step4Review: React.FC = () => {
              <div className="space-y-6">
                 <SummaryItem label="Regional State" value={formData.permState} />
                 <SummaryItem label="Administrative District" value={formData.permDistrict} />
-                <SummaryItem label="Locality" value={formData.permVillage} />
+                <SummaryItem label="Locality (NP)" value={formData.permVillageNp} />
+                <SummaryItem label="Locality (EN)" value={formData.permVillageEn} />
                 <SummaryItem label="Secure Mobile" value={formData.permMobile} />
              </div>
           </div>
@@ -109,7 +110,7 @@ export const Step4Review: React.FC = () => {
        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 mb-16 relative overflow-hidden">
           <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-[#1a4a8c]/5 rounded-full blur-[120px] pointer-events-none" />
           <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Family Lineage Registry</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
                 <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Father</h4>
                 <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{formData.fatherFirstNameEn} {formData.fatherLastNameEn}</p>
@@ -140,8 +141,54 @@ export const Step4Review: React.FC = () => {
                    </p>
                 </div>
              </div>
+             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Grandmother</h4>
+                <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{formData.grandMotherFirstNameEn} {formData.grandMotherLastNameEn}</p>
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Permanent Address</p>
+                   <p className="text-[10px] text-slate-500 uppercase">
+                     {formData.grandMotherPermLocalLevel}-{formData.grandMotherPermWard}, {formData.grandMotherPermDistrict}, {formData.grandMotherPermState}
+                   </p>
+                </div>
+             </div>
+             {formData.spouseFirstNameEn && (
+               <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                  <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Spouse</h4>
+                  <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{formData.spouseFirstNameEn} {formData.spouseLastNameEn}</p>
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Permanent Address</p>
+                     <p className="text-[10px] text-slate-500 uppercase">
+                       {formData.spousePermLocalLevel}-{formData.spousePermWard}, {formData.spousePermDistrict}, {formData.spousePermState}
+                     </p>
+                  </div>
+               </div>
+             )}
           </div>
        </div>
+
+       {formData.familyMembers && formData.familyMembers.length > 0 && (
+         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 mb-16 relative overflow-hidden">
+            <h3 className="text-[10px] font-black text-[#1a4a8c] uppercase tracking-[0.25em] mb-10 border-b border-slate-100 pb-4">Other Family Members</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               {formData.familyMembers.map((member: any, index: number) => (
+                 <div key={index} className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Member {index + 1}</h4>
+                    <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{member.name}</p>
+                    <div className="mt-4 space-y-2">
+                       <div className="flex justify-between text-[10px]">
+                          <span className="text-slate-400 font-bold uppercase">Relation:</span>
+                          <span className="text-slate-700 font-black uppercase tracking-tight">{member.relation}</span>
+                       </div>
+                       <div className="flex justify-between text-[10px]">
+                          <span className="text-slate-400 font-bold uppercase">Gender:</span>
+                          <span className="text-slate-700 font-black uppercase tracking-tight">{member.landElsewhere}</span>
+                       </div>
+                    </div>
+                 </div>
+               ))}
+            </div>
+         </div>
+       )}
 
          <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-10 mb-10 group relative overflow-hidden">
             <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />

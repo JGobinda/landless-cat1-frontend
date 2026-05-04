@@ -1,10 +1,13 @@
 import React from 'react';
-import { loginWithEmail } from '../../lib/firebase';
-import { LogIn, Phone, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { loginUser } from '../../services/authService';
+import { useFormContext } from '../../context/FormContext';
+import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import nepalEmblem from '../../assets/Emblem_of_Nepal.svg';
 
 export const Login: React.FC = () => {
+  const { setUser } = useFormContext();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -16,9 +19,15 @@ export const Login: React.FC = () => {
     setIsLoggingIn(true);
     setError('');
     try {
-      await loginWithEmail(email, password);
+      const user = await loginUser({ email, password });
+      setUser(user);
+      toast.success(`Welcome, ${user.name}!`);
     } catch (err: any) {
-      setError('Invalid credentials. Please ensure test@gmail.com / test@123 is enabled in Firebase Console.');
+      const msg =
+        err.response?.data?.message ||
+        'Invalid credentials. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoggingIn(false);
     }
@@ -86,7 +95,7 @@ export const Login: React.FC = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="test@gmail.com"
+                      placeholder="jane@example.com"
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:border-[#1a4a8c] transition-all"
                       required
                     />
@@ -111,9 +120,6 @@ export const Login: React.FC = () => {
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                  </div>
-                  <div className="text-right">
-                    {/* <a href="#" className="text-xs font-bold text-[#1a4a8c] hover:underline">पासवर्ड भुल्नु भयो?</a> */}
                   </div>
                 </div>
               </div>
@@ -140,10 +146,7 @@ export const Login: React.FC = () => {
                     प्रक्रियामा छ...
                   </span>
                 ) : (
-                  <>
-                    <span>लग -इन</span>
-                    {/* <LogIn className="w-4 h-4" /> */}
-                  </>
+                  <span>लग -इन</span>
                 )}
               </button>
             </form>
@@ -152,5 +155,4 @@ export const Login: React.FC = () => {
       </motion.div>
     </div>
   );
-
 };
